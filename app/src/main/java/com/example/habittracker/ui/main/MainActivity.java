@@ -9,6 +9,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.habittracker.R;
+import com.example.habittracker.ui.home.AddHabit;
 import com.example.habittracker.ui.home.HomeFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -27,10 +28,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // 2. Bắt sự kiện cho nút Dấu Cộng (Add Habit)
-        FloatingActionButton fabAdd = findViewById(R.id.nav_add);
-        fabAdd.setOnClickListener(v -> {
-            // Sau này chúng ta sẽ viết code mở màn hình "Thêm kế hoạch" ở đây
-            // Tạm thời để trống nhé!
+        FloatingActionButton btnAdd = findViewById(R.id.nav_add);
+        btnAdd.setOnClickListener(v -> {
+            // Khởi tạo và hiển thị cửa sổ trượt
+            AddHabit bottomSheet = new AddHabit();
+            bottomSheet.show(getSupportFragmentManager(), "AddHabitBottomSheet");
         });
 
         // Bạn có thể tự thêm bắt sự kiện cho nav_home, nav_calendar... tương tự nhé

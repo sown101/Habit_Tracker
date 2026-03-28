@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
+import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
@@ -235,5 +236,16 @@ public class Habit {
 
     public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    @Ignore
+    private boolean isCompletedToday;
+
+    public boolean isCompletedToday() {
+        return isCompletedToday;
+    }
+
+    public void setCompletedToday(boolean completedToday) {
+        isCompletedToday = completedToday;
     }
 }
