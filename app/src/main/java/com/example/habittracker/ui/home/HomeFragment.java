@@ -14,11 +14,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.habittracker.R;
 import com.example.habittracker.data.model.Habit;
 import com.example.habittracker.ui.adapter.HabitAdapter;
+import com.example.habittracker.data.db.AppDatabase; // Import AppDatabase của bạn
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class HomeFragment extends Fragment {
+
+    private RecyclerView rvHabits;
+    private HabitAdapter adapter;
 
     public HomeFragment() {}
 
@@ -27,31 +31,42 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        RecyclerView rvHabits = view.findViewById(R.id.rvHabits);
+        rvHabits = view.findViewById(R.id.rvHabits);
         rvHabits.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // --- TẠO DỮ LIỆU GIẢ VỚI CONSTRUCTOR  ---
-        List<Habit> dummyHabits = new ArrayList<>();
-
-        // Thói quen 1: Học tiếng Anh
-        Habit h1 = new Habit(1, "Học tiếng anh", "Học IELTS", "Học tập", "Regular", 1, "tiếng", "Daily", false, "", false, false, 0, true, "2026-03-27", "2026-03-27");
-        h1.setCompletedToday(true); // Đánh dấu đã xong
-        dummyHabits.add(h1);
-
-        // Thói quen 2: Tập thể dục
-        Habit h2 = new Habit(1, "Tập thể dục", "Chạy bộ", "Thể thao", "Regular", 20, "phút", "Daily", true, "06:00", false, false, 0, true, "2026-03-27", "2026-03-27");
-        h2.setCompletedToday(false);
-        dummyHabits.add(h2);
-
-        // Thói quen 3: Đọc sách
-        Habit h3 = new Habit(1, "Đọc sách", "Sách kinh tế", "Khác", "Regular", 15, "phút", "Daily", false, "", false, true, 15, true, "2026-03-27", "2026-03-27");
-        h3.setCompletedToday(false);
-        dummyHabits.add(h3);
-
-        // --- GẮN ADAPTER ---
-        HabitAdapter adapter = new HabitAdapter(dummyHabits);
+        // 1. Khởi tạo adapter với danh sách rỗng trước để tránh lỗi hiển thị lúc đang load
+        adapter = new HabitAdapter(new ArrayList<>());
         rvHabits.setAdapter(adapter);
 
+        // 2. Gọi hàm load dữ liệu thật từ Database
+        loadHabitsFromDatabase();
+        // Lắng nghe tín hiệu từ màn hình Thêm Thói Quen
+        getParentFragmentManager().setFragmentResultListener("refresh_habits", getViewLifecycleOwner(), (requestKey, result) -> {
+            // Hễ nhận được tín hiệu là tự động gọi lại hàm load Database
+            loadHabitsFromDatabase();
+        });
+
         return view;
+    }
+
+    // --- HÀM TẢI DỮ LIỆU TỪ ROOM DATABASE ---
+    private void loadHabitsFromDatabase() {
+        // Lấy instance của Database
+        AppDatabase db = AppDatabase.getInstance(requireContext());
+
+        // Chạy luồng ngầm để đọc dữ liệu (Không được đọc trên Main Thread)
+        new Thread(() -> {
+            // Lấy danh sách thói quen của userId = 1
+            List<Habit> realHabits = db.habitDao().getAllActiveHabitsByUser(1);
+
+            // Quay lại luồng chính để cập nhật giao diện
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    // Tạo adapter mới với dữ liệu thật và gắn lại vào RecyclerView
+                    adapter = new HabitAdapter(realHabits);
+                    rvHabits.setAdapter(adapter);
+                });
+            }
+        }).start();
     }
 }

@@ -145,29 +145,67 @@
                     android:layout_alignParentEnd="true"
                     android:entries="@array/frequency_options" />
             </RelativeLayout>
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupDays"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:singleSelection="false">
+
+                <com.google.android.material.chip.Chip style="@style/Widget.MaterialComponents.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="T2" />
+                <com.google.android.material.chip.Chip style="@style/Widget.MaterialComponents.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="T3" />
+                <com.google.android.material.chip.Chip style="@style/Widget.MaterialComponents.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="T4" />
+                <com.google.android.material.chip.Chip style="@style/Widget.MaterialComponents.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="T5" />
+                <com.google.android.material.chip.Chip style="@style/Widget.MaterialComponents.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="T6" />
+                <com.google.android.material.chip.Chip style="@style/Widget.MaterialComponents.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="T7" />
+                <com.google.android.material.chip.Chip style="@style/Widget.MaterialComponents.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="CN" />
+            </com.google.android.material.chip.ChipGroup>
 
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerVertical="true"
                     android:text="Mục tiêu"
                     android:textColor="@color/text_primary" />
-                <EditText
-                    android:id="@+id/edtTargetValue"
-                    android:layout_width="100dp"
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
-                    android:background="@drawable/bg_pill_gray"
-                    android:hint="Giá trị"
-                    android:inputType="number"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="10dp"
-                    android:textAlignment="center"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp" />
+                    android:orientation="horizontal">
+
+                    <EditText
+                        android:id="@+id/edtTargetValue"
+                        android:layout_width="70dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_pill_gray"
+                        android:hint="Số"
+                        android:inputType="number"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="10dp"
+                        android:textAlignment="center"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <EditText
+                        android:id="@+id/edtTargetUnit"
+                        android:layout_width="90dp"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_pill_gray"
+                        android:hint="Đơn vị"
+                        android:inputType="text"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="10dp"
+                        android:textAlignment="center"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+                </LinearLayout>
             </RelativeLayout>
 
         </LinearLayout>

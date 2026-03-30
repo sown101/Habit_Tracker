@@ -4,6 +4,5 @@
     <string-array name="frequency_options">
         <item>Hàng ngày</item>
         <item>Hàng tuần</item>
-        <item>Hàng tháng</item>
     </string-array>
 </resources>
