@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cài đặt"
+        android:textSize="26sp"
+        android:textColor="@color/text_primary"
+        android:fontFamily="@font/merriweather_24pt_bold"
+        android:layout_marginBottom="24dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_card_gray"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Nhắc nhở thói quen"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:fontFamily="@font/poppins_bold"/>
+
+        <Switch
+            android:id="@+id/switchNotifications"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cá nhân hóa"
+        android:textColor="@color/primary_green"
+        android:textSize="14sp"
+        android:fontFamily="@font/poppins_bold"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="8dp"/>
+
+    <LinearLayout
+        android:id="@+id/btnSetTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_card_gray"
+        android:padding="16dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Giờ nhắc nhở hằng ngày"
+            android:textColor="@color/text_primary"
+            android:fontFamily="@font/poppins_regular"/>
+
+        <TextView
+            android:id="@+id/tvReminderTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="20:00"
+            android:textColor="@color/primary_green"
+            android:fontFamily="@font/poppins_bold"/>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Hệ thống"
+        android:textColor="@color/primary_green"
+        android:textSize="14sp"
+        android:fontFamily="@font/poppins_bold"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btnResetData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Xóa toàn bộ dữ liệu"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:backgroundTint="#FF5252"
+        android:fontFamily="@font/poppins_bold"
+        app:cornerRadius="12dp"/>
+
+</LinearLayout>
