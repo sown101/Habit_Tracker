@@ -4,8 +4,11 @@ import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
+import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
+
+import java.io.Serializable;
 
 @Entity(
         tableName = "habits",
@@ -17,7 +20,7 @@ import androidx.room.PrimaryKey;
         ),
         indices = {@Index("user_id")}
 )
-public class Habit {
+public class Habit implements Serializable {
     @PrimaryKey(autoGenerate = true)
     private int id;
 
@@ -236,4 +239,20 @@ public class Habit {
     public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    @Ignore
+    private boolean isCompletedToday;
+
+    public boolean isCompletedToday() {
+        return isCompletedToday;
+    }
+
+    public void setCompletedToday(boolean completedToday) {
+        isCompletedToday = completedToday;
+    }
+    public String getFrequency() {
+        return frequencyType;
+    }
+
+
 }

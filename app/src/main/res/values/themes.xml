@@ -6,4 +6,16 @@
     </style>
 
     <style name="Theme.HabitTracker" parent="Base.Theme.HabitTracker" />
+    <style name="Theme.HabitTracker.BottomSheetDialog" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/CustomBottomSheetStyle</item>
+    </style>
+
+    <style name="CustomBottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="backgroundTint">@android:color/white</item> <item name="shapeAppearanceOverlay">@style/CustomShapeAppearanceBottomSheet</item>
+    </style>
+
+    <style name="CustomShapeAppearanceBottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">24dp</item> <item name="cornerSizeTopRight">24dp</item> <item name="cornerSizeBottomLeft">0dp</item> <item name="cornerSizeBottomRight">0dp</item>
+    </style>
 </resources>

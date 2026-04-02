@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Habit Tracker</string>
+
+    <string-array name="frequency_options">
+        <item>Hàng ngày</item>
+        <item>Hàng tuần</item>
+    </string-array>
 </resources>
