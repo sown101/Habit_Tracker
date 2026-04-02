@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.habittracker.R;
 import com.example.habittracker.data.model.Habit; // Trỏ đúng về file Habit của bạn
+import com.example.habittracker.ui.home.HabitDetailDialogFragment;
 
 import java.util.List;
 
@@ -72,6 +73,17 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
             currentHabit.setCompletedToday(isChecked);
             // Cập nhật lại dòng text "Hoàn thành / Chưa hoàn thành" khi bấm tick
             notifyItemChanged(position);
+        });
+        holder.itemView.setOnClickListener(v -> {
+            // Lấy FragmentManager từ Context của itemView (ép kiểu chuẩn theo bài giảng)
+            androidx.fragment.app.FragmentManager fragmentManager =
+                    ((androidx.appcompat.app.AppCompatActivity) holder.itemView.getContext()).getSupportFragmentManager();
+
+            // Khởi tạo Dialog và truyền dữ liệu
+            HabitDetailDialogFragment dialog = HabitDetailDialogFragment.newInstance(currentHabit);
+
+            // Hiển thị Dialog
+            dialog.show(fragmentManager, "HabitDetailDialog");
         });
     }
 

@@ -8,6 +8,8 @@ import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import java.io.Serializable;
+
 @Entity(
         tableName = "habits",
         foreignKeys = @ForeignKey(
@@ -18,7 +20,7 @@ import androidx.room.PrimaryKey;
         ),
         indices = {@Index("user_id")}
 )
-public class Habit {
+public class Habit implements Serializable {
     @PrimaryKey(autoGenerate = true)
     private int id;
 
@@ -248,4 +250,9 @@ public class Habit {
     public void setCompletedToday(boolean completedToday) {
         isCompletedToday = completedToday;
     }
+    public String getFrequency() {
+        return frequencyType;
+    }
+
+
 }

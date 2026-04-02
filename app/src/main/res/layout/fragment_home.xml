@@ -120,17 +120,6 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/txtProgressTitle" />
 
-                <TextView
-                    android:id="@+id/txtViewMore"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Xem thêm"
-                    android:textColor="#FF9800"
-                    android:textStyle="bold"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/txtProgressRatio" />
-
                 <View
                     android:layout_width="1dp"
                     android:layout_height="100dp"
