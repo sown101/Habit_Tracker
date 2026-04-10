@@ -18,6 +18,7 @@ import com.example.habittracker.ui.home.HomeFragment;
 import com.example.habittracker.ui.settings.SettingsFragment;
 import com.example.habittracker.ui.stats.StatsFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.example.habittracker.ui.calendar.CalendarFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView navStats;
     private ImageView navSettings;
     private FloatingActionButton navAdd;
+    private ImageView navCalendar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         navStats = findViewById(R.id.nav_stats);
         navSettings = findViewById(R.id.nav_settings);
         navAdd = findViewById(R.id.nav_add);
+        navCalendar = findViewById(R.id.nav_calendar);
 
         if (savedInstanceState == null) {
             openHomeFragment();
@@ -48,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
         navHome.setOnClickListener(v -> openHomeFragment());
 
         navStats.setOnClickListener(v -> openStatsFragment());
+
+        navCalendar.setOnClickListener(v -> openCalendarFragment());
 
         navSettings.setOnClickListener(v -> openSettingsFragment());
 
@@ -66,6 +71,12 @@ public class MainActivity extends AppCompatActivity {
     private void openStatsFragment() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new StatsFragment())
+                .commit();
+    }
+
+    private void openCalendarFragment() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, new CalendarFragment())
                 .commit();
     }
 

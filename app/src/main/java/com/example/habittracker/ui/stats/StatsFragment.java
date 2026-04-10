@@ -1,11 +1,9 @@
 package com.example.habittracker.ui.stats;
 
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,27 +12,27 @@ import androidx.fragment.app.Fragment;
 
 import com.example.habittracker.R;
 import com.example.habittracker.data.db.AppDatabase;
-import com.example.habittracker.data.model.Habit;
-import com.example.habittracker.data.model.HabitLog;
+import com.example.habittracker.utils.DailyCompletionUtils;
 import com.example.habittracker.utils.SessionManager;
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.Executors;
 
 public class StatsFragment extends Fragment {
 
-    private TextView tvTotalHabits;
-    private TextView tvCompletedToday;
-    private TextView tvCompletionRate;
     private TextView tvCurrentStreak;
     private TextView tvLongestStreak;
-    private TextView tvProgressPercent;
-    private TextView tvWeeklySummary;
-    private ProgressBar progressWeekly;
+    private TextView tvStatsSummary;
+    private BarChart barChartWeekly;
 
     private AppDatabase db;
 
@@ -52,183 +50,91 @@ public class StatsFragment extends Fragment {
 
         db = AppDatabase.getInstance(requireContext());
 
-        tvTotalHabits = view.findViewById(R.id.tvTotalHabits);
-        tvCompletedToday = view.findViewById(R.id.tvCompletedToday);
-        tvCompletionRate = view.findViewById(R.id.tvCompletionRate);
         tvCurrentStreak = view.findViewById(R.id.tvCurrentStreak);
         tvLongestStreak = view.findViewById(R.id.tvLongestStreak);
-        tvProgressPercent = view.findViewById(R.id.tvProgressPercent);
-        tvWeeklySummary = view.findViewById(R.id.tvWeeklySummary);
-        progressWeekly = view.findViewById(R.id.progressWeekly);
+        tvStatsSummary = view.findViewById(R.id.tvStatsSummary);
+        barChartWeekly = view.findViewById(R.id.barChartWeekly);
 
+        loadStats();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         loadStats();
     }
 
     private void loadStats() {
         int userId = SessionManager.getUserId(requireContext());
-
-        Executors.newSingleThreadExecutor().execute(() -> {
-            if (userId == -1) {
-                updateUi(0, 0, 0, 0, 0, "");
-                return;
-            }
-
-            List<Habit> habits = db.habitDao().getAllActiveHabitsByUser(userId);
-            int totalHabits = habits.size();
-
-            String today = getDateString(0);
-            int completedToday = countCompletedHabitsByDate(habits, today);
-
-            List<String> last7Days = getLastNDays(7);
-            int totalCompletedIn7Days = 0;
-            StringBuilder weeklyBuilder = new StringBuilder();
-
-            List<Boolean> completionFlags30Days = new ArrayList<>();
-            List<String> last30Days = getLastNDays(30);
-
-            for (String date : last30Days) {
-                int completedCount = countCompletedHabitsByDate(habits, date);
-                completionFlags30Days.add(completedCount > 0);
-            }
-
-            for (String date : last7Days) {
-                int completedCount = countCompletedHabitsByDate(habits, date);
-                totalCompletedIn7Days += completedCount;
-
-                String displayDate = convertToDisplayDate(date);
-                weeklyBuilder.append(displayDate)
-                        .append(": ")
-                        .append(completedCount)
-                        .append("/")
-                        .append(totalHabits)
-                        .append(" habit hoàn thành");
-
-                if (!date.equals(last7Days.get(last7Days.size() - 1))) {
-                    weeklyBuilder.append("\n");
-                }
-            }
-
-            int completionRate = 0;
-            if (totalHabits > 0) {
-                completionRate = Math.round((totalCompletedIn7Days * 100f) / (7f * totalHabits));
-            }
-
-            int currentStreak = calculateCurrentStreak(completionFlags30Days);
-            int longestStreak = calculateLongestStreak(completionFlags30Days);
-
-            updateUi(
-                    totalHabits,
-                    completedToday,
-                    completionRate,
-                    currentStreak,
-                    longestStreak,
-                    weeklyBuilder.toString()
-            );
-        });
-    }
-
-    private int countCompletedHabitsByDate(List<Habit> habits, String date) {
-        int count = 0;
-
-        for (Habit habit : habits) {
-            HabitLog log = db.habitLogDao().getLogByHabitAndDate(habit.getId(), date);
-            if (log != null && log.isCompleted()) {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
-    private void updateUi(int totalHabits,
-                          int completedToday,
-                          int completionRate,
-                          int currentStreak,
-                          int longestStreak,
-                          String weeklySummary) {
-
-        if (!isAdded()) {
+        if (userId == -1) {
             return;
         }
 
-        requireActivity().runOnUiThread(() -> {
-            tvTotalHabits.setText(String.valueOf(totalHabits));
-            tvCompletedToday.setText(String.valueOf(completedToday));
-            tvCompletionRate.setText(completionRate + "%");
-            tvCurrentStreak.setText(currentStreak + " ngày");
-            tvLongestStreak.setText(longestStreak + " ngày");
-            tvProgressPercent.setText(completionRate + "%");
-            progressWeekly.setProgress(completionRate);
+        new Thread(() -> {
+            int currentStreak = DailyCompletionUtils.calculateCurrentDayStreak(db, userId);
+            int longestStreak = DailyCompletionUtils.calculateLongestDayStreak(db, userId, 90);
 
-            if (TextUtils.isEmpty(weeklySummary)) {
-                tvWeeklySummary.setText("Chưa có dữ liệu thống kê.");
-            } else {
-                tvWeeklySummary.setText(weeklySummary);
-            }
-        });
-    }
+            List<BarEntry> entries = new ArrayList<>();
+            List<String> labels = new ArrayList<>();
 
-    private List<String> getLastNDays(int numberOfDays) {
-        List<String> days = new ArrayList<>();
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_YEAR, -(numberOfDays - 1));
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DAY_OF_YEAR, -6);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            int perfectDays = 0;
 
-        for (int i = 0; i < numberOfDays; i++) {
-            days.add(sdf.format(calendar.getTime()));
-            calendar.add(Calendar.DAY_OF_YEAR, 1);
-        }
+            for (int i = 0; i < 7; i++) {
+                String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        .format(calendar.getTime());
+                String label = new SimpleDateFormat("dd/MM", Locale.getDefault())
+                        .format(calendar.getTime());
 
-        return days;
-    }
+                int totalHabits = DailyCompletionUtils.getTotalHabitsForDay(db, userId);
+                int completed = DailyCompletionUtils.getCompletedCountForDay(db, userId, date);
 
-    private String getDateString(int offset) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_YEAR, offset);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        return sdf.format(calendar.getTime());
-    }
+                float percent = totalHabits == 0 ? 0 : (completed * 100f / totalHabits);
+                entries.add(new BarEntry(i, percent));
+                labels.add(label);
 
-    private String convertToDisplayDate(String dbDate) {
-        try {
-            SimpleDateFormat input = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            SimpleDateFormat output = new SimpleDateFormat("dd/MM", Locale.getDefault());
-            return output.format(input.parse(dbDate));
-        } catch (Exception e) {
-            return dbDate;
-        }
-    }
-
-    private int calculateCurrentStreak(List<Boolean> flags) {
-        int streak = 0;
-
-        for (int i = flags.size() - 1; i >= 0; i--) {
-            if (flags.get(i)) {
-                streak++;
-            } else {
-                break;
-            }
-        }
-
-        return streak;
-    }
-
-    private int calculateLongestStreak(List<Boolean> flags) {
-        int longest = 0;
-        int current = 0;
-
-        for (Boolean flag : flags) {
-            if (flag) {
-                current++;
-                if (current > longest) {
-                    longest = current;
+                if (DailyCompletionUtils.isPerfectDay(db, userId, date)) {
+                    perfectDays++;
                 }
-            } else {
-                current = 0;
-            }
-        }
 
-        return longest;
+                calendar.add(Calendar.DAY_OF_YEAR, 1);
+            }
+
+            String summary = "Chuỗi hiện tại được tính theo ngày hoàn hảo.\n"
+                    + "Một ngày chỉ được cộng streak khi tất cả habit trong ngày đều hoàn thành.\n"
+                    + "Số ngày hoàn hảo trong 7 ngày gần nhất: " + perfectDays;
+
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    tvCurrentStreak.setText(String.valueOf(currentStreak));
+                    tvLongestStreak.setText(String.valueOf(longestStreak));
+                    tvStatsSummary.setText(summary);
+                    renderBarChart(entries, labels);
+                });
+            }
+        }).start();
+    }
+
+    private void renderBarChart(List<BarEntry> entries, List<String> labels) {
+        BarDataSet dataSet = new BarDataSet(entries, "Tỷ lệ hoàn thành (%)");
+        BarData data = new BarData(dataSet);
+        data.setBarWidth(0.55f);
+
+        barChartWeekly.setData(data);
+        barChartWeekly.getXAxis().setValueFormatter(new IndexAxisValueFormatter(labels));
+        barChartWeekly.getXAxis().setGranularity(1f);
+        barChartWeekly.getXAxis().setLabelCount(labels.size());
+        barChartWeekly.getAxisRight().setEnabled(false);
+        barChartWeekly.getAxisLeft().setAxisMinimum(0f);
+        barChartWeekly.getAxisLeft().setAxisMaximum(100f);
+        barChartWeekly.getLegend().setEnabled(true);
+
+        Description description = new Description();
+        description.setText("");
+        barChartWeekly.setDescription(description);
+
+        barChartWeekly.invalidate();
     }
 }

@@ -52,4 +52,9 @@ public final class SessionManager {
         SharedPreferences preferences = getPreferences(context);
         preferences.edit().clear().apply();
     }
+
+    public static void clearSession(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("user_session", Context.MODE_PRIVATE);
+        prefs.edit().clear().apply();
+    }
 }
