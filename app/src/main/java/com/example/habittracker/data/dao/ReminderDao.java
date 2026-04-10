@@ -23,4 +23,10 @@ public interface ReminderDao {
 
     @Query("SELECT * FROM reminders WHERE habit_id = :habitId")
     List<Reminder> getRemindersByHabit(int habitId);
+
+    @Query("SELECT * FROM reminders WHERE is_enabled = 1")
+    List<Reminder> getAllEnabledReminders();
+
+    @Query("SELECT * FROM reminders WHERE habit_id = :habitId LIMIT 1")
+    Reminder getReminderByHabitId(int habitId);
 }

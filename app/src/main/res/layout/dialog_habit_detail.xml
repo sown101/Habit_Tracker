@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/bg_border_card"
     android:orientation="vertical"
     android:padding="24dp">
@@ -28,8 +28,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_edit"
-            />
+            android:src="@android:drawable/ic_menu_edit" />
+
         <ImageButton
             android:id="@+id/btnDeleteHabit"
             android:layout_width="40dp"
@@ -63,7 +63,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:text="🎯 Mục tiêu: 2 Lít"
+        android:text="🎯 Mục tiêu: 2 lít"
         android:textColor="@color/black"
         android:textSize="16sp" />
 
@@ -80,10 +80,39 @@
         android:id="@+id/tvDetailReminder"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="⏰ Nhắc nhở: 07:00 AM"
+        android:layout_marginBottom="12dp"
+        android:text="⏰ Nhắc nhở: 07:00"
         android:textColor="@color/black"
         android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/tvTodayStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="Trạng thái hôm nay: Chưa hoàn thành (0/1)"
+        android:textColor="#424242"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <CheckBox
+        android:id="@+id/cbDetailComplete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Đánh dấu hoàn thành hôm nay"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnStartFocusSession"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#4CAF50"
+        android:text="Bắt đầu Focus Session"
+        android:textColor="@android:color/white"
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/btnDetailClose"
