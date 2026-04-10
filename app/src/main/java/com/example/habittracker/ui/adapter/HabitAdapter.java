@@ -11,23 +11,41 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.habittracker.R;
-import com.example.habittracker.data.model.Habit; // Trỏ đúng về file Habit của bạn
+import com.example.habittracker.data.model.Habit;
 import com.example.habittracker.ui.home.HabitDetailDialogFragment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHolder> {
 
-    private List<Habit> habitList;
+    public interface OnHabitCheckedChangeListener {
+        void onHabitCheckedChanged(Habit habit, boolean isChecked, int position);
+    }
 
-    public HabitAdapter(List<Habit> habitList) {
-        this.habitList = habitList;
+    private final List<Habit> habitList = new ArrayList<>();
+    private final OnHabitCheckedChangeListener checkedChangeListener;
+
+    public HabitAdapter(List<Habit> habits, OnHabitCheckedChangeListener listener) {
+        if (habits != null) {
+            habitList.addAll(habits);
+        }
+        this.checkedChangeListener = listener;
+    }
+
+    public void updateData(List<Habit> newHabits) {
+        habitList.clear();
+        if (newHabits != null) {
+            habitList.addAll(newHabits);
+        }
+        notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public HabitViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_habit, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_habit, parent, false);
         return new HabitViewHolder(view);
     }
 
@@ -35,19 +53,13 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
     public void onBindViewHolder(@NonNull HabitViewHolder holder, int position) {
         Habit currentHabit = habitList.get(position);
 
-        // 1. Set Tiêu đề
         holder.txtHabitTitle.setText(currentHabit.getTitle());
 
-        // 2. Set Thời gian/Mục tiêu (Ví dụ: "1 tiếng" hoặc "20 phút")
-        String timeDesc = currentHabit.getTargetValue() + " " + currentHabit.getUnit();
-        if (currentHabit.isCompletedToday()) {
-            timeDesc += " • Hoàn thành";
-        } else {
-            timeDesc += " • Chưa hoàn thành";
-        }
-        holder.txtHabitTime.setText(timeDesc);
+        String unit = currentHabit.getUnit() == null ? "" : currentHabit.getUnit();
+        String statusText = currentHabit.isCompletedToday() ? "Hoàn thành" : "Chưa hoàn thành";
+        String infoText = currentHabit.getTargetValue() + " " + unit + " • " + statusText;
+        holder.txtHabitTime.setText(infoText.trim());
 
-        // 3. Đổi Icon dựa vào Category (Thể loại) của thói quen
         String category = currentHabit.getCategory();
         if (category != null) {
             switch (category) {
@@ -65,31 +77,35 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
             holder.imgHabitIcon.setImageResource(R.drawable.ic_folder);
         }
 
-        // 4. Xử lý Checkbox
-        holder.cbHabitComplete.setOnCheckedChangeListener(null); // Xóa bộ lắng nghe cũ
-        holder.cbHabitComplete.setChecked(currentHabit.isCompletedToday()); // Set trạng thái
+        holder.cbHabitComplete.setOnCheckedChangeListener(null);
+        holder.cbHabitComplete.setChecked(currentHabit.isCompletedToday());
 
         holder.cbHabitComplete.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            currentHabit.setCompletedToday(isChecked);
-            // Cập nhật lại dòng text "Hoàn thành / Chưa hoàn thành" khi bấm tick
-            notifyItemChanged(position);
+            if (checkedChangeListener != null) {
+                checkedChangeListener.onHabitCheckedChanged(currentHabit, isChecked, holder.getAdapterPosition());
+            }
         });
+
         holder.itemView.setOnClickListener(v -> {
-            // Lấy FragmentManager từ Context của itemView (ép kiểu chuẩn theo bài giảng)
             androidx.fragment.app.FragmentManager fragmentManager =
-                    ((androidx.appcompat.app.AppCompatActivity) holder.itemView.getContext()).getSupportFragmentManager();
+                    ((androidx.appcompat.app.AppCompatActivity) holder.itemView.getContext())
+                            .getSupportFragmentManager();
 
-            // Khởi tạo Dialog và truyền dữ liệu
             HabitDetailDialogFragment dialog = HabitDetailDialogFragment.newInstance(currentHabit);
-
-            // Hiển thị Dialog
             dialog.show(fragmentManager, "HabitDetailDialog");
         });
     }
 
     @Override
     public int getItemCount() {
-        return habitList == null ? 0 : habitList.size();
+        return habitList.size();
+    }
+
+    public void updateHabitCheckedState(int position, boolean isChecked) {
+        if (position >= 0 && position < habitList.size()) {
+            habitList.get(position).setCompletedToday(isChecked);
+            notifyItemChanged(position);
+        }
     }
 
     static class HabitViewHolder extends RecyclerView.ViewHolder {

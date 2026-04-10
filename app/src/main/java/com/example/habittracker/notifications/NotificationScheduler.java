@@ -6,38 +6,69 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
+import com.example.habittracker.utils.NotificationUtils;
+
 import java.util.Calendar;
 
-/**
- * Dùng AlarmManager để đặt/hủy lịch nhắc habit.
- * Giống cái đồng hồ báo thức — đến giờ thì Android tự gọi ReminderReceiver.
- *
- * Cách dùng từ chỗ khác (ví dụ sau khi lưu habit):
- *   NotificationScheduler.scheduleReminder(context, habit.getId(), habit.getTitle(), 7, 30, habit.getId());
- *
- * Thanh — phần Notifications
- */
 public class NotificationScheduler {
 
-    /**
-     * Đặt lịch nhắc habit, lặp lại mỗi ngày vào đúng giờ.
-     *
-     * @param context     context
-     * @param habitId     ID habit
-     * @param habitTitle  tên habit (gửi qua Intent để Receiver biết hiện gì)
-     * @param hour        giờ nhắc (0–23)
-     * @param minute      phút nhắc (0–59)
-     * @param requestCode mã duy nhất — dùng habitId cho tiện
-     */
-    public static void scheduleReminder(Context context,
-                                        int habitId,
-                                        String habitTitle,
-                                        int hour,
-                                        int minute,
-                                        int requestCode) {
+    private NotificationScheduler() {
+    }
+
+    public static void scheduleReminder(Context context, int habitId, String habitTitle, int hour, int minute, int requestCode) {
+        android.util.Log.d("NOTI_SCHEDULER", "scheduleReminder called");
+
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager == null) return;
+
+        Intent intent = new Intent(context, ReminderReceiver.class);
+        intent.putExtra(NotificationUtils.EXTRA_HABIT_ID, habitId);
+        intent.putExtra(NotificationUtils.EXTRA_HABIT_TITLE, habitTitle);
+        intent.putExtra(NotificationUtils.EXTRA_NOTIF_ID, requestCode);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                context, requestCode, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, minute);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        // Nếu giờ đặt đã qua so với hiện tại, dời sang ngày mai
+        if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+            calendar.add(Calendar.DAY_OF_YEAR, 1);
+        }
+
+        // Thay setRepeating bằng setExactAndAllowWhileIdle để đảm bảo độ chính xác
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    calendar.getTimeInMillis(),
+                    pendingIntent
+            );
+        } else {
+            alarmManager.setExact(
+                    AlarmManager.RTC_WAKEUP,
+                    calendar.getTimeInMillis(),
+                    pendingIntent
+            );
+        }
+    }
+
+    public static void scheduleOneTimeReminder(Context context,
+                                               int habitId,
+                                               String habitTitle,
+                                               int minutesFromNow,
+                                               int requestCode) {
+
         AlarmManager alarmManager =
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        if (alarmManager == null) return;
+        if (alarmManager == null) {
+            return;
+        }
 
         Intent intent = new Intent(context, ReminderReceiver.class);
         intent.putExtra(NotificationUtils.EXTRA_HABIT_ID, habitId);
@@ -51,54 +82,31 @@ public class NotificationScheduler {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        // Tính thời điểm alarm hôm nay lúc hour:minute
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, hour);
-        cal.set(Calendar.MINUTE, minute);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
+        long triggerAtMillis = System.currentTimeMillis() + minutesFromNow * 60L * 1000L;
 
-        // Nếu giờ đó đã qua hôm nay rồi → đặt cho ngày mai
-        if (cal.getTimeInMillis() <= System.currentTimeMillis()) {
-            cal.add(Calendar.DAY_OF_YEAR, 1);
-        }
-
-        // Android 12+ cần kiểm tra quyền trước khi đặt exact alarm
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (alarmManager.canScheduleExactAlarms()) {
-                alarmManager.setRepeating(
-                        AlarmManager.RTC_WAKEUP,
-                        cal.getTimeInMillis(),
-                        AlarmManager.INTERVAL_DAY,
-                        pendingIntent
-                );
-            }
-        } else {
-            alarmManager.setRepeating(
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(
                     AlarmManager.RTC_WAKEUP,
-                    cal.getTimeInMillis(),
-                    AlarmManager.INTERVAL_DAY,
+                    triggerAtMillis,
+                    pendingIntent
+            );
+        } else {
+            alarmManager.setExact(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerAtMillis,
                     pendingIntent
             );
         }
     }
 
-    /**
-     * Hủy alarm đã đặt.
-     * requestCode phải giống hệt lúc scheduleReminder(), nếu không hủy không được.
-     */
-    public static void cancelReminder(Context context,
-                                      int requestCode,
-                                      int habitId,
-                                      String habitTitle) {
+    public static void cancelReminder(Context context, int requestCode) {
         AlarmManager alarmManager =
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        if (alarmManager == null) return;
+        if (alarmManager == null) {
+            return;
+        }
 
         Intent intent = new Intent(context, ReminderReceiver.class);
-        intent.putExtra(NotificationUtils.EXTRA_HABIT_ID, habitId);
-        intent.putExtra(NotificationUtils.EXTRA_HABIT_TITLE, habitTitle);
-
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,
                 requestCode,

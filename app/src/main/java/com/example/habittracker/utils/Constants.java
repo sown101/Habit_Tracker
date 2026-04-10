@@ -27,6 +27,18 @@ public class Constants {
     public static final String SESSION_STATUS_COMPLETED = "COMPLETED";
     public static final String SESSION_STATUS_STOPPED = "STOPPED";
 
+    //thêm lần đầu khi sửa
+    public static final String CHANNEL_ID_FOCUS = "focus_session_channel";
+    public static final String CHANNEL_NAME_FOCUS = "Focus Session";
+
+    public static final String ACTION_FOCUS_STOP = "com.example.habittracker.ACTION_FOCUS_STOP";
+    public static final String ACTION_FOCUS_COMPLETE = "com.example.habittracker.ACTION_FOCUS_COMPLETE";
+
+    public static final String EXTRA_HABIT_ID = "extra_habit_id";
+    public static final String EXTRA_HABIT_TITLE = "extra_habit_title";
+    public static final String EXTRA_DURATION_MINUTES = "extra_duration_minutes";
+    public static final String EXTRA_SESSION_ID = "extra_session_id";
+
     // Database
     public static final String DATABASE_NAME = "habit_tracker_db";
 }

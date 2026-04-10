@@ -8,71 +8,67 @@ import com.example.habittracker.data.db.AppDatabase;
 import com.example.habittracker.data.model.Habit;
 import com.example.habittracker.data.model.Reminder;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 
-/**
- * Đặt lại toàn bộ alarm sau khi máy khởi động lại.
- *
- * Vấn đề: AlarmManager bị xóa sạch mỗi khi tắt máy.
- * Giải pháp: lắng nghe BOOT_COMPLETED → đặt lại tất cả reminder đang bật.
- *
- * Khai báo trong AndroidManifest.xml:
- *   <receiver android:name=".notifications.BootReceiver" android:exported="true">
- *       <intent-filter>
- *           <action android:name="android.intent.action.BOOT_COMPLETED"/>
- *       </intent-filter>
- *   </receiver>
- *
- * Permission cần thêm:
- *   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
- *
- * Yêu cầu team thêm vào ReminderDao.java:
- *   @Query("SELECT * FROM reminders WHERE is_enabled = 1")
- *   List<Reminder> getAllEnabledReminders();
- *
- * Thanh — phần Receiver
- */
 public class BootReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (!Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) return;
-        rescheduleAllReminders(context);
-    }
-
-    /**
-     * Query tất cả reminder đang bật rồi đặt lại alarm.
-     * Dùng getter vì Habit dùng private fields.
-     */
-    private void rescheduleAllReminders(Context context) {
-        AppDatabase db = AppDatabase.getInstance(context);
+        if (intent == null || !Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
+            return;
+        }
 
         Executors.newSingleThreadExecutor().execute(() -> {
-            // Cần team thêm hàm getAllEnabledReminders() vào ReminderDao
+            AppDatabase db = AppDatabase.getInstance(context);
             List<Reminder> reminders = db.reminderDao().getAllEnabledReminders();
 
             for (Reminder reminder : reminders) {
-                // Dùng getter vì Habit là private fields
                 Habit habit = db.habitDao().getHabitById(reminder.getHabitId());
-                if (habit == null) continue;
+                if (habit == null || !habit.isActive()) {
+                    continue;
+                }
 
-                // remindTime lưu dạng "07:30" — split để lấy giờ và phút
-                String[] parts = reminder.getRemindTime().split(":");
-                if (parts.length != 2) continue;
-
-                int hour   = Integer.parseInt(parts[0]);
-                int minute = Integer.parseInt(parts[1]);
+                int[] hourMinute = parseReminderTime(reminder.getRemindTime());
+                if (hourMinute == null) {
+                    continue;
+                }
 
                 NotificationScheduler.scheduleReminder(
                         context,
                         habit.getId(),
                         habit.getTitle(),
-                        hour,
-                        minute,
+                        hourMinute[0],
+                        hourMinute[1],
                         reminder.getRequestCode()
                 );
             }
         });
+    }
+
+    private int[] parseReminderTime(String timeText) {
+        if (timeText == null || timeText.trim().isEmpty()) {
+            return null;
+        }
+
+        String[] patterns = {"HH:mm", "hh:mm a"};
+        for (String pattern : patterns) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat(pattern, Locale.getDefault());
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(sdf.parse(timeText.trim()));
+                return new int[]{
+                        calendar.get(Calendar.HOUR_OF_DAY),
+                        calendar.get(Calendar.MINUTE)
+                };
+            } catch (ParseException ignored) {
+            }
+        }
+
+        return null;
     }
 }

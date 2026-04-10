@@ -1,40 +1,106 @@
 package com.example.habittracker.ui.main;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.widget.ImageView;
+import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.habittracker.R;
 import com.example.habittracker.ui.home.AddHabit;
 import com.example.habittracker.ui.home.HomeFragment;
+import com.example.habittracker.ui.settings.SettingsFragment;
+import com.example.habittracker.ui.stats.StatsFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final int REQUEST_CODE_POST_NOTIFICATIONS = 101;
+
+    private ImageView navHome;
+    private ImageView navStats;
+    private ImageView navSettings;
+    private FloatingActionButton navAdd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 1. Nạp HomeFragment vào fragment_container ngay khi mở app
+        askNotificationPermission();
+        com.example.habittracker.utils.NotificationUtils.createNotificationChannels(this);
+
+        navHome = findViewById(R.id.nav_home);
+        navStats = findViewById(R.id.nav_stats);
+        navSettings = findViewById(R.id.nav_settings);
+        navAdd = findViewById(R.id.nav_add);
+
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new HomeFragment())
-                    .commit();
+            openHomeFragment();
         }
 
-        // 2. Bắt sự kiện cho nút Dấu Cộng (Add Habit)
-        FloatingActionButton btnAdd = findViewById(R.id.nav_add);
-        btnAdd.setOnClickListener(v -> {
-            // Khởi tạo và hiển thị cửa sổ trượt
+        navHome.setOnClickListener(v -> openHomeFragment());
+
+        navStats.setOnClickListener(v -> openStatsFragment());
+
+        navSettings.setOnClickListener(v -> openSettingsFragment());
+
+        navAdd.setOnClickListener(v -> {
             AddHabit bottomSheet = new AddHabit();
             bottomSheet.show(getSupportFragmentManager(), "AddHabitBottomSheet");
         });
+    }
 
-        // Bạn có thể tự thêm bắt sự kiện cho nav_home, nav_calendar... tương tự nhé
+    private void openHomeFragment() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, new HomeFragment())
+                .commit();
+    }
+
+    private void openStatsFragment() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, new StatsFragment())
+                .commit();
+    }
+
+    private void openSettingsFragment() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, new SettingsFragment())
+                .commit();
+    }
+
+    private void askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        REQUEST_CODE_POST_NOTIFICATIONS
+                );
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_CODE_POST_NOTIFICATIONS) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Đã cấp quyền thông báo", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Permission denied. Cannot show notifications.", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 }

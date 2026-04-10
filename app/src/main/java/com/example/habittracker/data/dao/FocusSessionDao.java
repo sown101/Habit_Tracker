@@ -19,4 +19,7 @@ public interface FocusSessionDao {
 
     @Query("SELECT * FROM focus_sessions WHERE habit_id = :habitId ORDER BY start_time DESC")
     List<FocusSession> getSessionsByHabit(int habitId);
+
+    @Query("SELECT * FROM focus_sessions WHERE id = :id LIMIT 1")
+    FocusSession getById(int id);
 }

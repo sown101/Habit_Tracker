@@ -1,11 +1,14 @@
-package com.example.habittracker.ui.home; // Sửa lại package nếu cần
+package com.example.habittracker.ui.home;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,17 +16,36 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.habittracker.R;
+import com.example.habittracker.data.db.AppDatabase;
 import com.example.habittracker.data.model.Habit;
+import com.example.habittracker.data.model.HabitLog;
+import com.example.habittracker.utils.Constants;
+import com.example.habittracker.ui.habit.FocusSessionDialog;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class HabitDetailDialogFragment extends DialogFragment {
 
     private static final String ARG_HABIT = "habit_data";
 
-    // Hàm chuẩn để truyền dữ liệu vào Fragment
+    private Habit habit;
+    private AppDatabase db;
+
+    private TextView tvName;
+    private TextView tvCategory;
+    private TextView tvTarget;
+    private TextView tvFrequency;
+    private TextView tvReminder;
+    private TextView tvTodayStatus;
+    private CheckBox cbDetailComplete;
+    private Button btnClose;
+
     public static HabitDetailDialogFragment newInstance(Habit habit) {
         HabitDetailDialogFragment fragment = new HabitDetailDialogFragment();
         Bundle args = new Bundle();
-        args.putSerializable(ARG_HABIT, habit); // Truyền Object Habit
+        args.putSerializable(ARG_HABIT, habit);
         fragment.setArguments(args);
         return fragment;
     }
@@ -31,64 +53,60 @@ public class HabitDetailDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        // Nạp giao diện
         View view = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_habit_detail, null);
 
-        // Ánh xạ View
-        TextView tvName = view.findViewById(R.id.tvDetailName);
-        TextView tvCategory = view.findViewById(R.id.tvDetailCategory);
-        TextView tvTarget = view.findViewById(R.id.tvDetailTarget);
-        TextView tvFrequency = view.findViewById(R.id.tvDetailFrequency);
-        TextView tvReminder = view.findViewById(R.id.tvDetailReminder);
-        Button btnClose = view.findViewById(R.id.btnDetailClose);
+        db = AppDatabase.getInstance(requireContext());
 
-        android.widget.ImageButton btnEditHabit = view.findViewById(R.id.btnEditHabit);
-        android.widget.ImageButton btnDeleteHabit = view.findViewById(R.id.btnDeleteHabit); // Nút Xóa
+        tvName = view.findViewById(R.id.tvDetailName);
+        tvCategory = view.findViewById(R.id.tvDetailCategory);
+        tvTarget = view.findViewById(R.id.tvDetailTarget);
+        tvFrequency = view.findViewById(R.id.tvDetailFrequency);
+        tvReminder = view.findViewById(R.id.tvDetailReminder);
+        tvTodayStatus = view.findViewById(R.id.tvTodayStatus);
+        cbDetailComplete = view.findViewById(R.id.cbDetailComplete);
+        btnClose = view.findViewById(R.id.btnDetailClose);
 
-        // (Nếu bạn đã làm bước 3: Thêm tvDetailStreak vào XML thì bỏ comment 2 dòng dưới đây)
-        // TextView tvStreak = view.findViewById(R.id.tvDetailStreak);
+        Button btnStartFocusSession = view.findViewById(R.id.btnStartFocusSession);
 
-        // 1. LẤY BIẾN HABIT TỪ BUNDLE (Giải quyết lỗi báo đỏ scope)
-        Habit tempHabit = null;
-        if (getArguments() != null) {
-            tempHabit = (Habit) getArguments().getSerializable(ARG_HABIT);
-        }
-
-        // Gán vào một biến "final" để các nút Sửa, Xóa bên dưới có thể dùng được
-        final Habit habit = tempHabit;
-
-        // 2. ĐỔ DỮ LIỆU LÊN MÀN HÌNH
-        if (habit != null) {
-            tvName.setText(habit.getTitle());
-            tvCategory.setText(habit.getCategory());
-            tvTarget.setText("🎯 Mục tiêu: " + habit.getTargetValue() + " " + habit.getUnit());
-            tvFrequency.setText("🔄 Tần suất: " + habit.getFrequency());
-
-            if (habit.isReminderEnabled() && !habit.getReminderTime().isEmpty()) {
-                tvReminder.setText("⏰ Nhắc nhở: " + habit.getReminderTime());
-            } else {
-                tvReminder.setText("⏰ Nhắc nhở: Không bật");
+        btnStartFocusSession.setOnClickListener(v -> {
+            if (habit == null) {
+                Toast.makeText(requireContext(), "Không tìm thấy thói quen", Toast.LENGTH_SHORT).show();
+                return;
             }
 
-            // (Nếu bạn đã làm bước 3: Thêm Streak thì bỏ comment dòng dưới đây)
-            // tvStreak.setText("🔥 Chuỗi: " + habit.getCurrentStreak() + " ngày");
+            FocusSessionDialog dialog = FocusSessionDialog.newInstance(habit);
+            dialog.show(requireActivity().getSupportFragmentManager(), "FocusSessionDialog");
+        });
+
+        android.widget.ImageButton btnEditHabit = view.findViewById(R.id.btnEditHabit);
+        android.widget.ImageButton btnDeleteHabit = view.findViewById(R.id.btnDeleteHabit);
+
+        if (getArguments() != null) {
+            habit = (Habit) getArguments().getSerializable(ARG_HABIT);
         }
 
-        // 3. XỬ LÝ NÚT SỬA
+        bindStaticHabitInfo();
+        loadTodayLogAndBind();
+
+        cbDetailComplete.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!buttonView.isPressed()) {
+                return;
+            }
+            updateTodayCompletion(isChecked);
+        });
+
         btnEditHabit.setOnClickListener(v -> {
             if (habit == null) return;
 
-            dismiss(); // Tắt popup chi tiết này đi
+            dismiss();
 
-            // Mở BottomSheet AddHabit lên và truyền Object habit này qua đó
-            com.example.habittracker.ui.home.AddHabit editBottomSheet = new com.example.habittracker.ui.home.AddHabit();
+            AddHabit editBottomSheet = new AddHabit();
             Bundle bundle = new Bundle();
-            bundle.putSerializable("EDIT_HABIT", habit); // Không còn bị lỗi đỏ nữa!
+            bundle.putSerializable("EDIT_HABIT", habit);
             editBottomSheet.setArguments(bundle);
             editBottomSheet.show(requireActivity().getSupportFragmentManager(), "EditHabit");
         });
 
-        // 4. XỬ LÝ NÚT XÓA (Tạo hộp thoại xác nhận chuẩn bài giảng Chương 4)
         btnDeleteHabit.setOnClickListener(v -> {
             if (habit == null) return;
 
@@ -96,33 +114,24 @@ public class HabitDetailDialogFragment extends DialogFragment {
                     .setTitle("Xóa thói quen")
                     .setMessage("Bạn có chắc chắn muốn xóa thói quen '" + habit.getTitle() + "' không? Dữ liệu không thể khôi phục.")
                     .setPositiveButton("Xóa", (dialogInterface, i) -> {
-                        // Chạy luồng ngầm để xóa khỏi Database
                         new Thread(() -> {
-                            com.example.habittracker.data.db.AppDatabase.getInstance(requireContext())
-                                    .habitDao().delete(habit);
+                            db.habitDao().delete(habit);
 
-                            // Cập nhật giao diện trên luồng chính
                             if (getActivity() != null) {
                                 getActivity().runOnUiThread(() -> {
-                                    android.widget.Toast.makeText(getContext(), "Đã xóa thói quen", android.widget.Toast.LENGTH_SHORT).show();
-
-                                    // Phát tín hiệu cho HomeFragment tự động load lại danh sách
+                                    Toast.makeText(getContext(), "Đã xóa thói quen", Toast.LENGTH_SHORT).show();
                                     getParentFragmentManager().setFragmentResult("refresh_habits", new Bundle());
-
-                                    // Đóng cái popup chi tiết lại
                                     dismiss();
                                 });
                             }
                         }).start();
                     })
-                    .setNegativeButton("Hủy", null) // Bấm hủy thì đóng hộp thoại
+                    .setNegativeButton("Hủy", null)
                     .show();
         });
 
-        // 5. XỬ LÝ NÚT ĐÓNG
         btnClose.setOnClickListener(v -> dismiss());
 
-        // 6. KHỞI TẠO DIALOG (Xoá viền trắng mặc định để lộ nền bo góc)
         AlertDialog dialog = new AlertDialog.Builder(requireActivity())
                 .setView(view)
                 .setCancelable(true)
@@ -135,7 +144,145 @@ public class HabitDetailDialogFragment extends DialogFragment {
         return dialog;
     }
 
-    // Giữ cho dialog hiện lên cách đều 2 cạnh bên (90% width)
+    private void bindStaticHabitInfo() {
+        if (habit == null) {
+            return;
+        }
+
+        tvName.setText(safeText(habit.getTitle(), "Không có tên"));
+        tvCategory.setText(safeText(habit.getCategory(), "Chưa phân loại"));
+
+        String unit = safeText(habit.getUnit(), "");
+        String targetText = "🎯 Mục tiêu: " + habit.getTargetValue();
+        if (!unit.isEmpty()) {
+            targetText += " " + unit;
+        }
+        tvTarget.setText(targetText);
+
+        tvFrequency.setText("🔄 Tần suất: " + safeText(habit.getFrequency(), "Chưa có"));
+
+        if (habit.isReminderEnabled()
+                && habit.getReminderTime() != null
+                && !habit.getReminderTime().trim().isEmpty()) {
+            tvReminder.setText("⏰ Nhắc nhở: " + habit.getReminderTime());
+        } else {
+            tvReminder.setText("⏰ Nhắc nhở: Không bật");
+        }
+    }
+
+    private void loadTodayLogAndBind() {
+        if (habit == null) {
+            return;
+        }
+
+        new Thread(() -> {
+            String today = getTodayDate();
+            HabitLog todayLog = db.habitLogDao().getLogByHabitAndDate(habit.getId(), today);
+
+            boolean completed = todayLog != null && todayLog.isCompleted();
+            int currentValue = todayLog != null ? todayLog.getCurrentValue() : 0;
+            int targetValue = habit.getTargetValue();
+
+            habit.setCompletedToday(completed);
+
+            String statusText;
+            if (completed) {
+                statusText = "Trạng thái hôm nay: Đã hoàn thành";
+            } else {
+                statusText = "Trạng thái hôm nay: Chưa hoàn thành";
+            }
+
+            String progressText = statusText + " (" + currentValue + "/" + targetValue + ")";
+
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    cbDetailComplete.setOnCheckedChangeListener(null);
+                    cbDetailComplete.setChecked(completed);
+                    cbDetailComplete.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                        if (!buttonView.isPressed()) {
+                            return;
+                        }
+                        updateTodayCompletion(isChecked);
+                    });
+
+                    tvTodayStatus.setText(progressText);
+                });
+            }
+        }).start();
+    }
+
+    private void updateTodayCompletion(boolean isChecked) {
+        if (habit == null) {
+            return;
+        }
+
+        new Thread(() -> {
+            String today = getTodayDate();
+            String now = getCurrentDateTime();
+
+            HabitLog existingLog = db.habitLogDao().getLogByHabitAndDate(habit.getId(), today);
+
+            if (existingLog == null) {
+                HabitLog newLog = new HabitLog(
+                        habit.getId(),
+                        today,
+                        isChecked ? habit.getTargetValue() : 0,
+                        habit.getTargetValue(),
+                        isChecked,
+                        isChecked ? now : null,
+                        null,
+                        Constants.COMPLETION_METHOD_MANUAL
+                );
+                db.habitLogDao().insert(newLog);
+            } else {
+                existingLog.setCurrentValue(isChecked ? habit.getTargetValue() : 0);
+                existingLog.setTargetValue(habit.getTargetValue());
+                existingLog.setCompleted(isChecked);
+                existingLog.setCompletedAt(isChecked ? now : null);
+
+                if (TextUtils.isEmpty(existingLog.getCompletionMethod()) || isChecked) {
+                    existingLog.setCompletionMethod(Constants.COMPLETION_METHOD_MANUAL);
+                }
+
+                db.habitLogDao().update(existingLog);
+            }
+
+            habit.setCompletedToday(isChecked);
+
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    String message = isChecked
+                            ? "Đã đánh dấu hoàn thành hôm nay"
+                            : "Đã bỏ đánh dấu hoàn thành hôm nay";
+
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+
+                    getParentFragmentManager().setFragmentResult("refresh_habits", new Bundle());
+
+                    String progressText = (isChecked
+                            ? "Trạng thái hôm nay: Đã hoàn thành"
+                            : "Trạng thái hôm nay: Chưa hoàn thành")
+                            + " (" + (isChecked ? habit.getTargetValue() : 0)
+                            + "/" + habit.getTargetValue() + ")";
+
+                    tvTodayStatus.setText(progressText);
+                });
+            }
+        }).start();
+    }
+
+    private String getTodayDate() {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+    }
+
+    private String getCurrentDateTime() {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+    }
+
+    private String safeText(String value, String fallback) {
+        return value == null || value.trim().isEmpty() ? fallback : value;
+    }
+
     @Override
     public void onStart() {
         super.onStart();
