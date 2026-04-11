@@ -19,6 +19,7 @@ import com.example.habittracker.ui.settings.SettingsFragment;
 import com.example.habittracker.ui.stats.StatsFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.example.habittracker.ui.calendar.CalendarFragment;
+import com.example.habittracker.worker.WorkerScheduler;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
         askNotificationPermission();
         com.example.habittracker.utils.NotificationUtils.createNotificationChannels(this);
-
+        WorkerScheduler.scheduleAll(this);
         navHome = findViewById(R.id.nav_home);
         navStats = findViewById(R.id.nav_stats);
         navSettings = findViewById(R.id.nav_settings);

@@ -48,4 +48,5 @@ dependencies {
     implementation("com.kizitonwose.calendar:view:2.10.1")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("androidx.work:work-runtime:2.9.1")
 }
