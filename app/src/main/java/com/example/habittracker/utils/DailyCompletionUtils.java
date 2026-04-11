@@ -16,8 +16,8 @@ public class DailyCompletionUtils {
     }
 
     public static boolean isPerfectDay(AppDatabase db, int userId, String date) {
-        List<Habit> habits = db.habitDao().getAllActiveHabitsByUser(userId);
-        if (habits == null || habits.isEmpty()) {
+        List<Habit> habits = getHabitsActiveOnDate(db, userId, date);
+        if (habits.isEmpty()) {
             return false;
         }
 
@@ -32,7 +32,7 @@ public class DailyCompletionUtils {
     }
 
     public static int getCompletedCountForDay(AppDatabase db, int userId, String date) {
-        List<Habit> habits = db.habitDao().getAllActiveHabitsByUser(userId);
+        List<Habit> habits = getHabitsActiveOnDate(db, userId, date);
         int completed = 0;
 
         for (Habit habit : habits) {
@@ -45,9 +45,8 @@ public class DailyCompletionUtils {
         return completed;
     }
 
-    public static int getTotalHabitsForDay(AppDatabase db, int userId) {
-        List<Habit> habits = db.habitDao().getAllActiveHabitsByUser(userId);
-        return habits == null ? 0 : habits.size();
+    public static int getTotalHabitsForDay(AppDatabase db, int userId, String date) {
+        return getHabitsActiveOnDate(db, userId, date).size();
     }
 
     public static int calculateCurrentDayStreak(AppDatabase db, int userId) {
@@ -95,5 +94,36 @@ public class DailyCompletionUtils {
         }
 
         return longest;
+    }
+
+    public static List<Habit> getHabitsActiveOnDate(AppDatabase db, int userId, String date) {
+        List<Habit> allHabits = db.habitDao().getAllActiveHabitsByUser(userId);
+        List<Habit> result = new ArrayList<>();
+
+        if (allHabits == null) {
+            return result;
+        }
+
+        for (Habit habit : allHabits) {
+            if (wasHabitCreatedOnOrBeforeDate(habit, date)) {
+                result.add(habit);
+            }
+        }
+
+        return result;
+    }
+
+    private static boolean wasHabitCreatedOnOrBeforeDate(Habit habit, String date) {
+        if (habit == null) {
+            return false;
+        }
+
+        String createdAt = habit.getCreatedAt();
+        if (createdAt == null || createdAt.trim().isEmpty()) {
+            return true;
+        }
+
+        String createdDate = createdAt.length() >= 10 ? createdAt.substring(0, 10) : createdAt;
+        return createdDate.compareTo(date) <= 0;
     }
 }

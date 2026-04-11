@@ -3,54 +3,62 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="12dp"
     app:cardBackgroundColor="@android:color/white"
     app:cardCornerRadius="28dp"
-    app:cardElevation="8dp">
+    app:cardElevation="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:paddingStart="20dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="28dp">
 
         <TextView
             android:id="@+id/tvSheetTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Thêm thói quen mới"
-            android:textColor="@android:color/black"
+            android:text="Thêm thói quen"
+            android:textColor="@color/text_primary"
             android:textSize="22sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Tạo thói quen và cấu hình nhắc nhở"
-            android:textColor="#777777"
+            android:layout_marginTop="6dp"
+            android:text="Thiết lập complete habit hoặc counter habit"
+            android:textColor="@color/text_secondary"
             android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="Tên thói quen"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold" />
 
         <EditText
             android:id="@+id/edtHabitName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:background="@android:color/transparent"
-            android:hint="Tên thói quen"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/green_primary"
+            android:hint="Ví dụ: Thiền, Uống nước, Pomodoro"
             android:inputType="textCapSentences"
-            android:padding="14dp"
-            android:textColor="@android:color/black"
-            android:textColorHint="#999999"
-            android:backgroundTint="#DDDDDD" />
+            android:maxLines="1"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Danh mục"
-            android:textColor="@android:color/black"
-            android:textSize="15sp"
+            android:textColor="@color/text_primary"
             android:textStyle="bold" />
 
         <com.google.android.material.chip.ChipGroup
@@ -61,66 +69,95 @@
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/chipHealth"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:checked="true"
                 android:text="Sức khỏe" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/chipStudy"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Học tập" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/chipWork"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Công việc" />
+                android:text="Thể thao" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/chipOther"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Khác" />
         </com.google.android.material.chip.ChipGroup>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="Loại thói quen"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/spinnerHabitType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_pill_gray"
+            android:padding="10dp" />
+
         <LinearLayout
+            android:id="@+id/layoutCounterFields"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <EditText
-                android:id="@+id/edtTargetValue"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/tvTargetTitle"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@android:color/transparent"
-                android:hint="Mục tiêu"
-                android:inputType="number"
-                android:padding="14dp"
-                android:textColor="@android:color/black"
-                android:textColorHint="#999999"
-                android:backgroundTint="#DDDDDD" />
+                android:text="Mục tiêu trong ngày"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/edtTargetUnit"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/tvTargetHint"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:background="@android:color/transparent"
-                android:hint="Đơn vị"
-                android:inputType="textCapWords"
-                android:padding="14dp"
-                android:textColor="@android:color/black"
-                android:textColorHint="#999999"
-                android:backgroundTint="#DDDDDD" />
+                android:layout_marginTop="4dp"
+                android:text="Ví dụ: 8 cốc, 6000 bước, 4 phiên"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/edtTargetValue"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/green_primary"
+                    android:hint="Mục tiêu"
+                    android:inputType="number" />
+
+                <Space
+                    android:layout_width="12dp"
+                    android:layout_height="wrap_content" />
+
+                <EditText
+                    android:id="@+id/edtTargetUnit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/green_primary"
+                    android:hint="Đơn vị"
+                    android:inputType="textCapWords" />
+            </LinearLayout>
         </LinearLayout>
 
         <TextView
@@ -128,17 +165,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Tần suất"
-            android:textColor="@android:color/black"
-            android:textSize="15sp"
+            android:textColor="@color/text_primary"
             android:textStyle="bold" />
 
         <Spinner
             android:id="@+id/spinnerFrequency"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:backgroundTint="#DDDDDD"
-            android:entries="@array/frequency_options"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_pill_gray"
             android:padding="10dp" />
 
         <TextView
@@ -147,8 +182,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Chọn ngày trong tuần"
-            android:textColor="@android:color/black"
-            android:textSize="15sp"
+            android:textColor="@color/text_primary"
             android:textStyle="bold"
             android:visibility="gone" />
 
@@ -157,47 +191,40 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:singleSelection="false"
-            android:visibility="gone">
+            android:visibility="gone"
+            app:singleLine="false">
 
             <com.google.android.material.chip.Chip
-                style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="T2" />
 
             <com.google.android.material.chip.Chip
-                style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="T3" />
 
             <com.google.android.material.chip.Chip
-                style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="T4" />
 
             <com.google.android.material.chip.Chip
-                style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="T5" />
 
             <com.google.android.material.chip.Chip
-                style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="T6" />
 
             <com.google.android.material.chip.Chip
-                style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="T7" />
 
             <com.google.android.material.chip.Chip
-                style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="CN" />
@@ -209,7 +236,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Bật nhắc nhở"
-            android:textColor="@android:color/black" />
+            android:textColor="@color/text_primary" />
 
         <LinearLayout
             android:id="@+id/layoutReminderTime"
@@ -227,7 +254,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Giờ nhắc nhở"
-                android:textColor="@android:color/black"
+                android:textColor="@color/text_primary"
                 android:textSize="15sp" />
 
             <TextView
@@ -248,15 +275,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Cho phép hoàn thành bằng lắc điện thoại"
-            android:textColor="@android:color/black" />
+            android:textColor="@color/text_primary" />
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchFocus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Bật chế độ Focus Session"
-            android:textColor="@android:color/black" />
+            android:text="Bật Focus Session"
+            android:textColor="@color/text_primary" />
 
         <Button
             android:id="@+id/btnSaveHabit"

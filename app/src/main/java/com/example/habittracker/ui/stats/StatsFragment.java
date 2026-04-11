@@ -88,7 +88,7 @@ public class StatsFragment extends Fragment {
                 String label = new SimpleDateFormat("dd/MM", Locale.getDefault())
                         .format(calendar.getTime());
 
-                int totalHabits = DailyCompletionUtils.getTotalHabitsForDay(db, userId);
+                int totalHabits = DailyCompletionUtils.getTotalHabitsForDay(db, userId, date);
                 int completed = DailyCompletionUtils.getCompletedCountForDay(db, userId, date);
 
                 float percent = totalHabits == 0 ? 0 : (completed * 100f / totalHabits);

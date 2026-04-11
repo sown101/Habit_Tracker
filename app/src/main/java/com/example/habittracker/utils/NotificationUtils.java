@@ -28,6 +28,8 @@ public class NotificationUtils {
     public static final String EXTRA_HABIT_TITLE = "extra_habit_title";
     public static final String EXTRA_NOTIF_ID = "extra_notif_id";
 
+    public static final String ACTION_COUNTER_PLUS = "com.example.habittracker.ACTION_COUNTER_PLUS";
+    public static final String ACTION_COUNTER_MINUS = "com.example.habittracker.ACTION_COUNTER_MINUS";
     private NotificationUtils() {
     }
 
@@ -63,7 +65,8 @@ public class NotificationUtils {
     public static void showReminderNotification(Context context,
                                                 int habitId,
                                                 String habitTitle,
-                                                int notifId) {
+                                                int notifId,
+                                                boolean isCounterHabit) {
 
         Intent completeIntent = new Intent(context, NotificationActionReceiver.class);
         completeIntent.setAction(ACTION_COMPLETE);
@@ -91,13 +94,26 @@ public class NotificationUtils {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
+        Intent plusIntent = new Intent(context, NotificationActionReceiver.class);
+        plusIntent.setAction(ACTION_COUNTER_PLUS);
+        plusIntent.putExtra(EXTRA_HABIT_ID, habitId);
+        plusIntent.putExtra(EXTRA_HABIT_TITLE, habitTitle);
+        plusIntent.putExtra(EXTRA_NOTIF_ID, notifId);
+
+        PendingIntent plusPendingIntent = PendingIntent.getBroadcast(
+                context,
+                notifId + 3000,
+                plusIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
         Intent openIntent = new Intent(context, MainActivity.class);
         openIntent.putExtra(EXTRA_HABIT_ID, habitId);
         openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         PendingIntent openPendingIntent = PendingIntent.getActivity(
                 context,
-                notifId + 3000,
+                notifId + 4000,
                 openIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
@@ -111,15 +127,19 @@ public class NotificationUtils {
                                 .bigText("Đã đến giờ thực hiện thói quen: " + habitTitle))
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
                         .setAutoCancel(true)
-                        .setContentIntent(openPendingIntent)
-                        .addAction(0, "Hoàn thành", completePendingIntent)
-                        .addAction(0, "Nhắc lại 10 phút", snoozePendingIntent);
+                        .setContentIntent(openPendingIntent);
 
-        // Kiểm tra xem thiết bị có đang chạy Android 13 (Tiramisu) trở lên hay không
+        if (isCounterHabit) {
+            builder.addAction(0, "+1", plusPendingIntent)
+                    .addAction(0, "Nhắc lại 10 phút", snoozePendingIntent);
+        } else {
+            builder.addAction(0, "Hoàn thành", completePendingIntent)
+                    .addAction(0, "Nhắc lại 10 phút", snoozePendingIntent);
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                // Quyền chưa được cấp.
-                // Return sớm để ứng dụng không bị crash hoặc báo lỗi lint.
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
         }

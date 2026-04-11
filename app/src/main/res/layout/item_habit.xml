@@ -7,7 +7,7 @@
     android:layout_marginHorizontal="20dp"
     android:layout_marginBottom="12dp"
     app:cardBackgroundColor="@android:color/white"
-    app:cardCornerRadius="25dp"
+    app:cardCornerRadius="24dp"
     app:cardElevation="0dp"
     app:strokeColor="@color/gray_border"
     app:strokeWidth="1dp">
@@ -15,15 +15,15 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minHeight="92dp"
         android:padding="16dp">
 
         <ImageView
             android:id="@+id/imgHabitIcon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="#F5F5F5"
-            android:padding="8dp"
-            app:layout_constraintCircleRadius="20dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@color/gray_light"
+            android:padding="9dp"
             android:src="@drawable/ic_launcher_foreground"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -34,36 +34,90 @@
             android:id="@+id/txtHabitTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="12dp"
             android:fontFamily="sans-serif-medium"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
-            app:layout_constraintEnd_toStartOf="@+id/cbHabitComplete"
+            app:layout_constraintEnd_toStartOf="@+id/layoutCompleteAction"
             app:layout_constraintStart_toEndOf="@+id/imgHabitIcon"
             app:layout_constraintTop_toTopOf="@+id/imgHabitIcon"
-            tools:text="Học tiếng anh" />
+            tools:text="Uống nước" />
 
         <TextView
             android:id="@+id/txtHabitTime"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
             android:textColor="@color/text_secondary"
             android:textSize="13sp"
             app:layout_constraintEnd_toEndOf="@+id/txtHabitTitle"
             app:layout_constraintStart_toStartOf="@+id/txtHabitTitle"
             app:layout_constraintTop_toBottomOf="@+id/txtHabitTitle"
-            tools:text="1 tiếng • Hoàn thành" />
+            tools:text="3/8 cốc • Hàng ngày" />
 
-        <CheckBox
-            android:id="@+id/cbHabitComplete"
+        <LinearLayout
+            android:id="@+id/layoutCompleteAction"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:buttonTint="@color/text_secondary"
+            android:gravity="center"
+            android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <CheckBox
+                android:id="@+id/cbHabitComplete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:buttonTint="@color/green_primary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutCounterAction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/btnMinus"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_pill_gray"
+                android:gravity="center"
+                android:text="-"
+                android:textColor="@color/text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtCounterValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:minWidth="52dp"
+                android:gravity="center"
+                android:text="0/8"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btnPlus"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_pill_gray"
+                android:gravity="center"
+                android:text="+"
+                android:textColor="@color/text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

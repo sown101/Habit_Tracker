@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -36,14 +37,22 @@ import java.util.Locale;
 
 public class AddHabit extends BottomSheetDialogFragment {
 
+    private static final String LABEL_COMPLETE = "Complete habit";
+    private static final String LABEL_COUNTER = "Counter habit";
+    private static final String LABEL_DAILY = "Hàng ngày";
+    private static final String LABEL_WEEKLY = "Hàng tuần";
+
     private EditText edtHabitName;
     private EditText edtTargetValue;
     private EditText edtTargetUnit;
     private TextView txtReminderTime;
     private TextView tvSheetTitle;
     private TextView tvWeeklyDaysLabel;
+    private TextView tvTargetTitle;
+    private TextView tvTargetHint;
     private Button btnSaveHabit;
     private Spinner spinnerFrequency;
+    private Spinner spinnerHabitType;
 
     private SwitchMaterial switchReminder;
     private SwitchMaterial switchShake;
@@ -52,6 +61,7 @@ public class AddHabit extends BottomSheetDialogFragment {
     private ChipGroup chipGroupCategory;
     private ChipGroup chipGroupDays;
     private LinearLayout layoutReminderTime;
+    private LinearLayout layoutCounterFields;
 
     private Habit habitToEdit;
 
@@ -69,6 +79,7 @@ public class AddHabit extends BottomSheetDialogFragment {
         View view = inflater.inflate(R.layout.layout_bottom_sheet_add, container, false);
 
         initViews(view);
+        setupSpinners();
         initEvents();
 
         if (getArguments() != null && getArguments().containsKey("EDIT_HABIT")) {
@@ -78,6 +89,9 @@ public class AddHabit extends BottomSheetDialogFragment {
         if (habitToEdit != null) {
             bindHabitToForm(habitToEdit);
         } else {
+            spinnerHabitType.setSelection(0);
+            spinnerFrequency.setSelection(0);
+            updateFormByHabitType();
             updateReminderVisibility();
             updateWeeklyDaysVisibility();
         }
@@ -94,8 +108,11 @@ public class AddHabit extends BottomSheetDialogFragment {
         txtReminderTime = view.findViewById(R.id.txtReminderTime);
         tvSheetTitle = view.findViewById(R.id.tvSheetTitle);
         tvWeeklyDaysLabel = view.findViewById(R.id.tvWeeklyDaysLabel);
+        tvTargetTitle = view.findViewById(R.id.tvTargetTitle);
+        tvTargetHint = view.findViewById(R.id.tvTargetHint);
         btnSaveHabit = view.findViewById(R.id.btnSaveHabit);
         spinnerFrequency = view.findViewById(R.id.spinnerFrequency);
+        spinnerHabitType = view.findViewById(R.id.spinnerHabitType);
 
         switchReminder = view.findViewById(R.id.switchReminder);
         switchShake = view.findViewById(R.id.switchShake);
@@ -104,6 +121,25 @@ public class AddHabit extends BottomSheetDialogFragment {
         chipGroupCategory = view.findViewById(R.id.chipGroupCategory);
         chipGroupDays = view.findViewById(R.id.chipGroupDays);
         layoutReminderTime = view.findViewById(R.id.layoutReminderTime);
+        layoutCounterFields = view.findViewById(R.id.layoutCounterFields);
+    }
+
+    private void setupSpinners() {
+        ArrayAdapter<String> habitTypeAdapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_spinner_item,
+                new String[]{LABEL_COMPLETE, LABEL_COUNTER}
+        );
+        habitTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerHabitType.setAdapter(habitTypeAdapter);
+
+        ArrayAdapter<String> frequencyAdapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_spinner_item,
+                new String[]{LABEL_DAILY, LABEL_WEEKLY}
+        );
+        frequencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerFrequency.setAdapter(frequencyAdapter);
     }
 
     private void initEvents() {
@@ -130,6 +166,17 @@ public class AddHabit extends BottomSheetDialogFragment {
             public void onNothingSelected(android.widget.AdapterView<?> parent) {
             }
         });
+
+        spinnerHabitType.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                updateFormByHabitType();
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+            }
+        });
     }
 
     private void updateReminderVisibility() {
@@ -141,9 +188,33 @@ public class AddHabit extends BottomSheetDialogFragment {
                 ? spinnerFrequency.getSelectedItem().toString()
                 : "";
 
-        boolean isWeekly = "Hàng tuần".equals(selected);
+        boolean isWeekly = LABEL_WEEKLY.equals(selected);
         tvWeeklyDaysLabel.setVisibility(isWeekly ? View.VISIBLE : View.GONE);
         chipGroupDays.setVisibility(isWeekly ? View.VISIBLE : View.GONE);
+    }
+
+    private void updateFormByHabitType() {
+        boolean isCounter = isCounterTypeSelected();
+
+        layoutCounterFields.setVisibility(isCounter ? View.VISIBLE : View.GONE);
+
+        if (isCounter) {
+            tvTargetTitle.setText("Mục tiêu trong ngày");
+            tvTargetHint.setText("Ví dụ: 8 cốc, 6000 bước, 4 phiên");
+            switchShake.setChecked(false);
+            switchShake.setEnabled(false);
+            switchShake.setAlpha(0.5f);
+        } else {
+            tvTargetTitle.setText("Thiết lập complete habit");
+            tvTargetHint.setText("Complete habit chỉ cần đánh dấu hoàn thành trong ngày.");
+            switchShake.setEnabled(true);
+            switchShake.setAlpha(1f);
+        }
+    }
+
+    private boolean isCounterTypeSelected() {
+        Object selected = spinnerHabitType.getSelectedItem();
+        return selected != null && LABEL_COUNTER.equals(selected.toString());
     }
 
     private void showTimePicker() {
@@ -191,8 +262,16 @@ public class AddHabit extends BottomSheetDialogFragment {
         btnSaveHabit.setText("Cập nhật");
 
         edtHabitName.setText(habit.getTitle());
-        edtTargetValue.setText(String.valueOf(habit.getTargetValue()));
-        edtTargetUnit.setText(habit.getUnit());
+
+        if (habit.isCounterHabit()) {
+            spinnerHabitType.setSelection(1);
+            edtTargetValue.setText(String.valueOf(habit.getSafeTargetValue()));
+            edtTargetUnit.setText(habit.getDisplayUnit());
+        } else {
+            spinnerHabitType.setSelection(0);
+            edtTargetValue.setText("");
+            edtTargetUnit.setText("");
+        }
 
         switchShake.setChecked(habit.isAllowShakeComplete());
         switchFocus.setChecked(habit.isEnableFocusSession());
@@ -208,14 +287,11 @@ public class AddHabit extends BottomSheetDialogFragment {
         }
 
         String frequencyType = habit.getFrequencyType();
-        if ("Hàng tuần".equals(frequencyType)) {
+        if (LABEL_WEEKLY.equalsIgnoreCase(frequencyType) || "WEEKLY".equalsIgnoreCase(frequencyType)) {
             spinnerFrequency.setSelection(1);
         } else {
             spinnerFrequency.setSelection(0);
         }
-
-        updateReminderVisibility();
-        updateWeeklyDaysVisibility();
 
         String category = habit.getCategory();
         for (int i = 0; i < chipGroupCategory.getChildCount(); i++) {
@@ -228,13 +304,20 @@ public class AddHabit extends BottomSheetDialogFragment {
                 }
             }
         }
+
+        updateFormByHabitType();
+        updateReminderVisibility();
+        updateWeeklyDaysVisibility();
     }
 
     private void saveHabit() {
         String name = edtHabitName.getText().toString().trim();
+        String selectedHabitType = isCounterTypeSelected() ? Habit.TYPE_COUNTER : Habit.TYPE_COMPLETE;
         String valueStr = edtTargetValue.getText().toString().trim();
-        String unit = edtTargetUnit.getText().toString().trim();
-        String frequency = spinnerFrequency.getSelectedItem().toString();
+        String unitStr = edtTargetUnit.getText().toString().trim();
+        String frequency = spinnerFrequency.getSelectedItem() != null
+                ? spinnerFrequency.getSelectedItem().toString()
+                : LABEL_DAILY;
         String reminderTime = txtReminderTime.getText().toString().trim();
 
         if (name.isEmpty()) {
@@ -242,14 +325,36 @@ public class AddHabit extends BottomSheetDialogFragment {
             return;
         }
 
-        if (valueStr.isEmpty()) {
-            Toast.makeText(getContext(), "Vui lòng nhập giá trị mục tiêu", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        int targetValue;
+        String unit;
 
-        if (unit.isEmpty()) {
-            Toast.makeText(getContext(), "Vui lòng nhập đơn vị", Toast.LENGTH_SHORT).show();
-            return;
+        if (Habit.TYPE_COUNTER.equals(selectedHabitType)) {
+            if (valueStr.isEmpty()) {
+                Toast.makeText(getContext(), "Vui lòng nhập mục tiêu cho counter habit", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            try {
+                targetValue = Integer.parseInt(valueStr);
+            } catch (NumberFormatException e) {
+                Toast.makeText(getContext(), "Giá trị mục tiêu không hợp lệ", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (targetValue <= 0) {
+                Toast.makeText(getContext(), "Mục tiêu phải lớn hơn 0", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (unitStr.isEmpty()) {
+                Toast.makeText(getContext(), "Vui lòng nhập đơn vị", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            unit = unitStr;
+        } else {
+            targetValue = 1;
+            unit = "lần";
         }
 
         int userId = SessionManager.getUserId(requireContext());
@@ -258,15 +363,7 @@ public class AddHabit extends BottomSheetDialogFragment {
             return;
         }
 
-        int targetValue;
-        try {
-            targetValue = Integer.parseInt(valueStr);
-        } catch (NumberFormatException e) {
-            Toast.makeText(getContext(), "Giá trị mục tiêu không hợp lệ", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        boolean isShake = switchShake.isChecked();
+        boolean isShake = switchShake.isChecked() && Habit.TYPE_COMPLETE.equals(selectedHabitType);
         boolean isFocus = switchFocus.isChecked();
         boolean isReminderEnabled = switchReminder.isChecked();
 
@@ -288,6 +385,7 @@ public class AddHabit extends BottomSheetDialogFragment {
             habitToEdit.setUserId(userId);
             habitToEdit.setTitle(name);
             habitToEdit.setCategory(category);
+            habitToEdit.setHabitType(selectedHabitType);
             habitToEdit.setTargetValue(targetValue);
             habitToEdit.setUnit(unit);
             habitToEdit.setFrequencyType(frequency);
@@ -295,6 +393,7 @@ public class AddHabit extends BottomSheetDialogFragment {
             habitToEdit.setReminderTime(isReminderEnabled ? reminderTime : "");
             habitToEdit.setAllowShakeComplete(isShake);
             habitToEdit.setEnableFocusSession(isFocus);
+            habitToEdit.setSessionDurationMinutes(isFocus ? 25 : 0);
             habitToEdit.setUpdatedAt(now);
 
             habitToSave = habitToEdit;
@@ -306,7 +405,7 @@ public class AddHabit extends BottomSheetDialogFragment {
                     name,
                     "",
                     category,
-                    "Regular",
+                    selectedHabitType,
                     targetValue,
                     unit,
                     frequency,
@@ -314,7 +413,7 @@ public class AddHabit extends BottomSheetDialogFragment {
                     isReminderEnabled ? reminderTime : "",
                     isShake,
                     isFocus,
-                    0,
+                    isFocus ? 25 : 0,
                     true,
                     now,
                     now
@@ -359,10 +458,6 @@ public class AddHabit extends BottomSheetDialogFragment {
                     int[] hourMinute = parseReminderTime(habitToSave.getReminderTime());
                     if (hourMinute != null) {
                         NotificationScheduler.cancelReminder(requireContext(), requestCode);
-                        android.util.Log.d("ADD_HABIT", "schedule reminder called");
-                        android.util.Log.d("ADD_HABIT", "scheduleReminder -> id=" + habitToSave.getId()
-                                + ", title=" + habitToSave.getTitle()
-                                + ", time=" + habitToSave.getReminderTime());
                         NotificationScheduler.scheduleReminder(
                                 requireContext(),
                                 habitToSave.getId(),
@@ -371,7 +466,6 @@ public class AddHabit extends BottomSheetDialogFragment {
                                 hourMinute[1],
                                 requestCode
                         );
-
                     }
 
                 } else {
@@ -443,8 +537,6 @@ public class AddHabit extends BottomSheetDialogFragment {
             return null;
         }
 
-        // 1. Đảo ngược thứ tự: Ưu tiên check chuỗi có chữ AM/PM trước
-        // 2. Ép dùng Locale.US để hệ thống luôn hiểu đúng chữ "AM" và "PM" dù máy đang dùng Tiếng Việt
         String[] patterns = {"hh:mm a", "HH:mm"};
 
         for (String pattern : patterns) {

@@ -14,7 +14,6 @@ import androidx.core.content.ContextCompat;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import com.example.habittracker.R;
 import com.example.habittracker.data.db.AppDatabase;
 import com.example.habittracker.utils.DailyCompletionUtils;
 import com.example.habittracker.utils.SessionManager;
@@ -44,9 +43,10 @@ public class SummaryWorker extends Worker {
 
         AppDatabase db = AppDatabase.getInstance(context);
 
-        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                .format(new Date());
 
-        int totalHabits = DailyCompletionUtils.getTotalHabitsForDay(db, userId);
+        int totalHabits = DailyCompletionUtils.getTotalHabitsForDay(db, userId, today);
         int completedHabits = DailyCompletionUtils.getCompletedCountForDay(db, userId, today);
         boolean perfectDay = DailyCompletionUtils.isPerfectDay(db, userId, today);
         int currentStreak = DailyCompletionUtils.calculateCurrentDayStreak(db, userId);
@@ -67,7 +67,6 @@ public class SummaryWorker extends Worker {
         }
 
         showNotification(context, title, content);
-
         return Result.success();
     }
 

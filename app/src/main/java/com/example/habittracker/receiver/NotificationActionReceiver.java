@@ -38,6 +38,7 @@ public class NotificationActionReceiver extends BroadcastReceiver {
             if (notifId != -1) {
                 NotificationUtils.cancelNotification(context, notifId);
             }
+
         } else if (NotificationUtils.ACTION_SNOOZE.equals(action)) {
             if (habitTitle != null && notifId != -1) {
                 NotificationScheduler.scheduleOneTimeReminder(
@@ -47,6 +48,18 @@ public class NotificationActionReceiver extends BroadcastReceiver {
                         10,
                         notifId + 5000
                 );
+                NotificationUtils.cancelNotification(context, notifId);
+            }
+
+        } else if (NotificationUtils.ACTION_COUNTER_PLUS.equals(action)) {
+            updateCounterHabit(context, habitId, +1);
+            if (notifId != -1) {
+                NotificationUtils.cancelNotification(context, notifId);
+            }
+
+        } else if (NotificationUtils.ACTION_COUNTER_MINUS.equals(action)) {
+            updateCounterHabit(context, habitId, -1);
+            if (notifId != -1) {
                 NotificationUtils.cancelNotification(context, notifId);
             }
         }
@@ -61,31 +74,83 @@ public class NotificationActionReceiver extends BroadcastReceiver {
                 return;
             }
 
-            String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                    .format(new Date());
+            String today = getTodayDate();
+            String now = getCurrentDateTime();
 
             HabitLog existingLog = db.habitLogDao().getLogByHabitAndDate(habitId, today);
 
+            int targetValue = habit.getTargetValue() > 0 ? habit.getTargetValue() : 1;
+
             if (existingLog != null) {
-                existingLog.setCurrentValue(habit.getTargetValue());
-                existingLog.setTargetValue(habit.getTargetValue());
+                existingLog.setCurrentValue(targetValue);
+                existingLog.setTargetValue(targetValue);
                 existingLog.setCompleted(true);
-                existingLog.setCompletedAt(today);
+                existingLog.setCompletedAt(now);
                 existingLog.setCompletionMethod(Constants.COMPLETION_METHOD_NOTIFICATION);
                 db.habitLogDao().update(existingLog);
             } else {
                 HabitLog newLog = new HabitLog(
                         habitId,
                         today,
-                        habit.getTargetValue(),
-                        habit.getTargetValue(),
+                        targetValue,
+                        targetValue,
                         true,
-                        today,
+                        now,
                         null,
                         Constants.COMPLETION_METHOD_NOTIFICATION
                 );
                 db.habitLogDao().insert(newLog);
             }
         });
+    }
+
+    private void updateCounterHabit(Context context, int habitId, int delta) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            AppDatabase db = AppDatabase.getInstance(context);
+
+            Habit habit = db.habitDao().getHabitById(habitId);
+            if (habit == null) {
+                return;
+            }
+
+            String today = getTodayDate();
+            String now = getCurrentDateTime();
+
+            HabitLog existingLog = db.habitLogDao().getLogByHabitAndDate(habitId, today);
+
+            int targetValue = habit.getTargetValue() > 0 ? habit.getTargetValue() : 1;
+            int currentValue = existingLog != null ? existingLog.getCurrentValue() : 0;
+            int newValue = Math.max(0, currentValue + delta);
+            boolean isCompleted = newValue >= targetValue;
+
+            if (existingLog == null) {
+                HabitLog newLog = new HabitLog(
+                        habitId,
+                        today,
+                        newValue,
+                        targetValue,
+                        isCompleted,
+                        isCompleted ? now : null,
+                        null,
+                        Constants.COMPLETION_METHOD_NOTIFICATION
+                );
+                db.habitLogDao().insert(newLog);
+            } else {
+                existingLog.setCurrentValue(newValue);
+                existingLog.setTargetValue(targetValue);
+                existingLog.setCompleted(isCompleted);
+                existingLog.setCompletedAt(isCompleted ? now : null);
+                existingLog.setCompletionMethod(Constants.COMPLETION_METHOD_NOTIFICATION);
+                db.habitLogDao().update(existingLog);
+            }
+        });
+    }
+
+    private String getTodayDate() {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+    }
+
+    private String getCurrentDateTime() {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
     }
 }

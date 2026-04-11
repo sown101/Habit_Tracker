@@ -21,6 +21,10 @@ import java.io.Serializable;
         indices = {@Index("user_id")}
 )
 public class Habit implements Serializable {
+
+    public static final String TYPE_COMPLETE = "COMPLETE";
+    public static final String TYPE_COUNTER = "COUNTER";
+
     @PrimaryKey(autoGenerate = true)
     private int id;
 
@@ -67,6 +71,12 @@ public class Habit implements Serializable {
 
     @ColumnInfo(name = "updated_at")
     private String updatedAt;
+
+    @Ignore
+    private boolean isCompletedToday;
+
+    @Ignore
+    private int currentValueToday;
 
     public Habit(int userId,
                  @NonNull String title,
@@ -240,9 +250,6 @@ public class Habit implements Serializable {
         this.updatedAt = updatedAt;
     }
 
-    @Ignore
-    private boolean isCompletedToday;
-
     public boolean isCompletedToday() {
         return isCompletedToday;
     }
@@ -250,9 +257,51 @@ public class Habit implements Serializable {
     public void setCompletedToday(boolean completedToday) {
         isCompletedToday = completedToday;
     }
+
+    public int getCurrentValueToday() {
+        return currentValueToday;
+    }
+
+    public void setCurrentValueToday(int currentValueToday) {
+        this.currentValueToday = currentValueToday;
+    }
+
     public String getFrequency() {
         return frequencyType;
     }
 
+    public boolean isCounterHabit() {
+        return TYPE_COUNTER.equalsIgnoreCase(habitType);
+    }
 
+    public boolean isCompleteHabit() {
+        if (habitType == null || habitType.trim().isEmpty()) {
+            return true;
+        }
+        return TYPE_COMPLETE.equalsIgnoreCase(habitType)
+                || "CHECKBOX".equalsIgnoreCase(habitType)
+                || "REGULAR".equalsIgnoreCase(habitType);
+    }
+
+    public String getNormalizedHabitType() {
+        return isCounterHabit() ? TYPE_COUNTER : TYPE_COMPLETE;
+    }
+
+    public String getDisplayUnit() {
+        if (unit == null || unit.trim().isEmpty()) {
+            return isCounterHabit() ? "lần" : "";
+        }
+        return unit.trim();
+    }
+
+    public int getSafeTargetValue() {
+        return targetValue <= 0 ? 1 : targetValue;
+    }
+
+    public String getDisplayProgressText() {
+        if (isCounterHabit()) {
+            return currentValueToday + "/" + getSafeTargetValue() + " " + getDisplayUnit();
+        }
+        return isCompletedToday ? "Hoàn thành" : "Chưa hoàn thành";
+    }
 }

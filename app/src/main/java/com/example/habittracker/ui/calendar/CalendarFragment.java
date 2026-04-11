@@ -20,6 +20,7 @@ import com.example.habittracker.data.db.AppDatabase;
 import com.example.habittracker.data.model.Habit;
 import com.example.habittracker.data.model.HabitLog;
 import com.example.habittracker.utils.Constants;
+import com.example.habittracker.utils.DailyCompletionUtils;
 import com.example.habittracker.utils.SessionManager;
 import com.kizitonwose.calendar.core.CalendarDay;
 import com.kizitonwose.calendar.core.DayPosition;
@@ -168,8 +169,6 @@ public class CalendarFragment extends Fragment {
         }
 
         new Thread(() -> {
-            List<Habit> habits = db.habitDao().getAllActiveHabitsByUser(userId);
-
             greenDates.clear();
             redDates.clear();
 
@@ -178,11 +177,16 @@ public class CalendarFragment extends Fragment {
 
             LocalDate date = start;
             while (!date.isAfter(end)) {
-                if (!habits.isEmpty()) {
-                    boolean isPerfect = true;
-                    boolean hasAnyLogOrHabit = !habits.isEmpty();
+                List<Habit> habitsForDate = DailyCompletionUtils.getHabitsActiveOnDate(
+                        db,
+                        userId,
+                        date.toString()
+                );
 
-                    for (Habit habit : habits) {
+                if (!habitsForDate.isEmpty()) {
+                    boolean isPerfect = true;
+
+                    for (Habit habit : habitsForDate) {
                         HabitLog log = db.habitLogDao().getLogByHabitAndDate(
                                 habit.getId(),
                                 date.toString()
@@ -194,7 +198,7 @@ public class CalendarFragment extends Fragment {
 
                     if (isPerfect) {
                         greenDates.add(date);
-                    } else if (hasAnyLogOrHabit) {
+                    } else {
                         redDates.add(date);
                     }
                 }
@@ -217,7 +221,11 @@ public class CalendarFragment extends Fragment {
         }
 
         new Thread(() -> {
-            List<Habit> habits = db.habitDao().getAllActiveHabitsByUser(userId);
+            List<Habit> habits = DailyCompletionUtils.getHabitsActiveOnDate(
+                    db,
+                    userId,
+                    date.toString()
+            );
 
             int completedCount = 0;
             for (Habit habit : habits) {
