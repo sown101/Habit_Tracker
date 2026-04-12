@@ -20,7 +20,6 @@ import com.example.habittracker.data.db.AppDatabase;
 import com.example.habittracker.data.model.Habit;
 import com.example.habittracker.data.model.HabitLog;
 import com.example.habittracker.utils.Constants;
-import com.example.habittracker.ui.habit.FocusSessionDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -65,18 +64,6 @@ public class HabitDetailDialogFragment extends DialogFragment {
         tvTodayStatus = view.findViewById(R.id.tvTodayStatus);
         cbDetailComplete = view.findViewById(R.id.cbDetailComplete);
         btnClose = view.findViewById(R.id.btnDetailClose);
-
-        Button btnStartFocusSession = view.findViewById(R.id.btnStartFocusSession);
-
-        btnStartFocusSession.setOnClickListener(v -> {
-            if (habit == null) {
-                Toast.makeText(requireContext(), "Không tìm thấy thói quen", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            FocusSessionDialog dialog = FocusSessionDialog.newInstance(habit);
-            dialog.show(requireActivity().getSupportFragmentManager(), "FocusSessionDialog");
-        });
 
         android.widget.ImageButton btnEditHabit = view.findViewById(R.id.btnEditHabit);
         android.widget.ImageButton btnDeleteHabit = view.findViewById(R.id.btnDeleteHabit);
@@ -185,12 +172,9 @@ public class HabitDetailDialogFragment extends DialogFragment {
 
             habit.setCompletedToday(completed);
 
-            String statusText;
-            if (completed) {
-                statusText = "Trạng thái hôm nay: Đã hoàn thành";
-            } else {
-                statusText = "Trạng thái hôm nay: Chưa hoàn thành";
-            }
+            String statusText = completed
+                    ? "Trạng thái hôm nay: Đã hoàn thành"
+                    : "Trạng thái hôm nay: Chưa hoàn thành";
 
             String progressText = statusText + " (" + currentValue + "/" + targetValue + ")";
 
@@ -256,19 +240,21 @@ public class HabitDetailDialogFragment extends DialogFragment {
                             : "Đã bỏ đánh dấu hoàn thành hôm nay";
 
                     Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
-
                     getParentFragmentManager().setFragmentResult("refresh_habits", new Bundle());
 
-                    String progressText = (isChecked
+                    String status = isChecked
                             ? "Trạng thái hôm nay: Đã hoàn thành"
-                            : "Trạng thái hôm nay: Chưa hoàn thành")
-                            + " (" + (isChecked ? habit.getTargetValue() : 0)
-                            + "/" + habit.getTargetValue() + ")";
+                            : "Trạng thái hôm nay: Chưa hoàn thành";
 
-                    tvTodayStatus.setText(progressText);
+                    tvTodayStatus.setText(status + " (" +
+                            (isChecked ? habit.getTargetValue() : 0) + "/" + habit.getTargetValue() + ")");
                 });
             }
         }).start();
+    }
+
+    private String safeText(String value, String fallback) {
+        return value == null || value.trim().isEmpty() ? fallback : value;
     }
 
     private String getTodayDate() {
@@ -277,19 +263,5 @@ public class HabitDetailDialogFragment extends DialogFragment {
 
     private String getCurrentDateTime() {
         return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-    }
-
-    private String safeText(String value, String fallback) {
-        return value == null || value.trim().isEmpty() ? fallback : value;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        Dialog dialog = getDialog();
-        if (dialog != null && dialog.getWindow() != null) {
-            int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.90);
-            dialog.getWindow().setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
-        }
     }
 }

@@ -13,13 +13,13 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.habittracker.R;
+import com.example.habittracker.ui.calendar.CalendarFragment;
 import com.example.habittracker.ui.home.AddHabit;
 import com.example.habittracker.ui.home.HomeFragment;
 import com.example.habittracker.ui.settings.SettingsFragment;
 import com.example.habittracker.ui.stats.StatsFragment;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.example.habittracker.ui.calendar.CalendarFragment;
 import com.example.habittracker.worker.WorkerScheduler;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,8 +28,8 @@ public class MainActivity extends AppCompatActivity {
     private ImageView navHome;
     private ImageView navStats;
     private ImageView navSettings;
-    private FloatingActionButton navAdd;
     private ImageView navCalendar;
+    private FloatingActionButton navAdd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,22 +39,20 @@ public class MainActivity extends AppCompatActivity {
         askNotificationPermission();
         com.example.habittracker.utils.NotificationUtils.createNotificationChannels(this);
         WorkerScheduler.scheduleAll(this);
+
         navHome = findViewById(R.id.nav_home);
         navStats = findViewById(R.id.nav_stats);
         navSettings = findViewById(R.id.nav_settings);
-        navAdd = findViewById(R.id.nav_add);
         navCalendar = findViewById(R.id.nav_calendar);
+        navAdd = findViewById(R.id.nav_add);
 
         if (savedInstanceState == null) {
             openHomeFragment();
         }
 
         navHome.setOnClickListener(v -> openHomeFragment());
-
         navStats.setOnClickListener(v -> openStatsFragment());
-
         navCalendar.setOnClickListener(v -> openCalendarFragment());
-
         navSettings.setOnClickListener(v -> openSettingsFragment());
 
         navAdd.setOnClickListener(v -> {
@@ -64,25 +62,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openHomeFragment() {
-        getSupportFragmentManager().beginTransaction()
+        getSupportFragmentManager()
+                .beginTransaction()
                 .replace(R.id.fragment_container, new HomeFragment())
                 .commit();
     }
 
     private void openStatsFragment() {
-        getSupportFragmentManager().beginTransaction()
+        getSupportFragmentManager()
+                .beginTransaction()
                 .replace(R.id.fragment_container, new StatsFragment())
                 .commit();
     }
 
     private void openCalendarFragment() {
-        getSupportFragmentManager().beginTransaction()
+        getSupportFragmentManager()
+                .beginTransaction()
                 .replace(R.id.fragment_container, new CalendarFragment())
                 .commit();
     }
 
     private void openSettingsFragment() {
-        getSupportFragmentManager().beginTransaction()
+        getSupportFragmentManager()
+                .beginTransaction()
                 .replace(R.id.fragment_container, new SettingsFragment())
                 .commit();
     }

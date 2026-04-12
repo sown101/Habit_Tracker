@@ -19,6 +19,7 @@ import com.example.habittracker.data.db.AppDatabase;
 import com.example.habittracker.data.model.Habit;
 import com.example.habittracker.data.model.HabitLog;
 import com.example.habittracker.ui.adapter.HabitAdapter;
+import com.example.habittracker.ui.timer.TimerHabitDialogFragment;
 import com.example.habittracker.utils.Constants;
 import com.example.habittracker.utils.SessionManager;
 
@@ -63,7 +64,8 @@ public class HomeFragment extends Fragment {
                     public void onCounterMinus(Habit habit, int position) {
                         updateCounterHabit(habit, position, -1);
                     }
-                }
+                },
+                (habit, position) -> openTimerHabit(habit)
         );
 
         rvHabits.setAdapter(adapter);
@@ -76,6 +78,15 @@ public class HomeFragment extends Fragment {
 
         loadHabitsFromDatabase();
         return view;
+    }
+
+    private void openTimerHabit(Habit habit) {
+        if (habit == null || !habit.isTimerHabit()) {
+            return;
+        }
+
+        TimerHabitDialogFragment dialog = TimerHabitDialogFragment.newInstance(habit.getId());
+        dialog.show(getParentFragmentManager(), "timer_habit_dialog");
     }
 
     private void loadHabitsFromDatabase() {
@@ -100,7 +111,7 @@ public class HomeFragment extends Fragment {
                 int currentValue = todayLog != null ? todayLog.getCurrentValue() : 0;
                 boolean completedToday;
 
-                if (habit.isCounterHabit()) {
+                if (habit.isCounterHabit() || habit.isTimerHabit()) {
                     completedToday = currentValue >= habit.getSafeTargetValue();
                 } else {
                     completedToday = todayLog != null && todayLog.isCompleted();

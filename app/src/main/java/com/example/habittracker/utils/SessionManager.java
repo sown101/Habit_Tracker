@@ -5,11 +5,12 @@ import android.content.SharedPreferences;
 
 public final class SessionManager {
     private static final String PREF_NAME = "habit_tracker_session";
+    private static final String KEY_USER_NAME = "local_user_name";
+    private static final String KEY_USER_EMAIL = "local_user_email";
 
-    private static final String KEY_IS_LOGGED_IN = "is_logged_in";
-    private static final String KEY_USER_ID = "user_id";
-    private static final String KEY_USER_NAME = "user_name";
-    private static final String KEY_USER_EMAIL = "user_email";
+    private static final int LOCAL_USER_ID = 1;
+    private static final String DEFAULT_USER_NAME = "Local User";
+    private static final String DEFAULT_USER_EMAIL = "";
 
     private SessionManager() {
     }
@@ -19,42 +20,34 @@ public final class SessionManager {
     }
 
     public static void saveLoginSession(Context context, int userId, String userName, String userEmail) {
-        SharedPreferences preferences = getPreferences(context);
-        preferences.edit()
-                .putBoolean(KEY_IS_LOGGED_IN, true)
-                .putInt(KEY_USER_ID, userId)
-                .putString(KEY_USER_NAME, userName)
-                .putString(KEY_USER_EMAIL, userEmail)
+        getPreferences(context)
+                .edit()
+                .putString(KEY_USER_NAME, userName == null ? DEFAULT_USER_NAME : userName)
+                .putString(KEY_USER_EMAIL, userEmail == null ? DEFAULT_USER_EMAIL : userEmail)
                 .apply();
     }
 
     public static boolean isLoggedIn(Context context) {
-        SharedPreferences preferences = getPreferences(context);
-        return preferences.getBoolean(KEY_IS_LOGGED_IN, false);
+        return true;
     }
 
     public static int getUserId(Context context) {
-        SharedPreferences preferences = getPreferences(context);
-        return preferences.getInt(KEY_USER_ID, -1);
+        return LOCAL_USER_ID;
     }
 
     public static String getUserName(Context context) {
-        SharedPreferences preferences = getPreferences(context);
-        return preferences.getString(KEY_USER_NAME, "");
+        return getPreferences(context).getString(KEY_USER_NAME, DEFAULT_USER_NAME);
     }
 
     public static String getUserEmail(Context context) {
-        SharedPreferences preferences = getPreferences(context);
-        return preferences.getString(KEY_USER_EMAIL, "");
+        return getPreferences(context).getString(KEY_USER_EMAIL, DEFAULT_USER_EMAIL);
     }
 
     public static void logout(Context context) {
-        SharedPreferences preferences = getPreferences(context);
-        preferences.edit().clear().apply();
+        clearSession(context);
     }
 
     public static void clearSession(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences("user_session", Context.MODE_PRIVATE);
-        prefs.edit().clear().apply();
+        getPreferences(context).edit().clear().apply();
     }
 }

@@ -31,19 +31,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Bật thông báo" />
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchShakeSetting"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Bật hoàn thành bằng lắc máy" />
         </LinearLayout>
 
-        <Button
-            android:id="@+id/btnLogout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Đăng xuất" />
     </LinearLayout>
 </ScrollView>
