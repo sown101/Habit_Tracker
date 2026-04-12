@@ -122,8 +122,11 @@ public class AddHabit extends BottomSheetDialogFragment {
             txtSelectedIcon.setText(selectedIcon);
             setIconPreviewColor(selectedColor);
 
-            btnTrackTask.setChecked(true);
-            btnRepeatDaily.setChecked(true);
+//            btnTrackTask.setChecked(true);
+//            btnRepeatDaily.setChecked(true);
+
+            toggleTrackType.check(R.id.btnTrackTask);
+            toggleRepeat.check(R.id.btnRepeatDaily);
 
             updateTrackTypeUI();
             updateTrackButtonsUI();
@@ -333,7 +336,7 @@ public class AddHabit extends BottomSheetDialogFragment {
         });
 
         toggleTrackType.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (!isChecked) return;
+//            if (!isChecked) return;
             updateTrackTypeUI();
             updateTrackButtonsUI();
         });
@@ -426,13 +429,13 @@ public class AddHabit extends BottomSheetDialogFragment {
         updateIconPickerSelection();
 
         if (habit.isTaskHabit()) {
-            btnTrackTask.setChecked(true);
+            toggleTrackType.check(R.id.btnTrackTask);
         } else if (habit.isCounterHabit()) {
-            btnTrackAmount.setChecked(true);
+            toggleTrackType.check(R.id.btnTrackAmount);
             edtTargetValue.setText(String.valueOf(habit.getSafeTargetValue()));
             edtTargetUnit.setText(habit.getDisplayUnit());
         } else if (habit.isTimerHabit()) {
-            btnTrackTime.setChecked(true);
+            toggleTrackType.check(R.id.btnTrackTime);
             edtTimerMinutes.setText(String.valueOf(habit.getSafeTargetValue()));
         }
 
@@ -442,11 +445,11 @@ public class AddHabit extends BottomSheetDialogFragment {
 
         String freq = habit.getFrequencyType();
         if (Constants.FREQUENCY_WEEKLY.equalsIgnoreCase(freq)) {
-            btnRepeatWeekly.setChecked(true);
+            toggleRepeat.check(R.id.btnRepeatWeekly);
         } else if (Constants.FREQUENCY_MONTHLY.equalsIgnoreCase(freq)) {
-            btnRepeatMonthly.setChecked(true);
+            toggleRepeat.check(R.id.btnRepeatMonthly);
         } else {
-            btnRepeatDaily.setChecked(true);
+            toggleRepeat.check(R.id.btnRepeatDaily);
         }
 
         updateTrackTypeUI();

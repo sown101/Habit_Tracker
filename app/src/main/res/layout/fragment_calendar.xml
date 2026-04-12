@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     android:background="#F7F8FA"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:paddingHorizontal="20dp"
+    android:paddingTop="48dp">
 
     <TextView
         android:id="@+id/tvCalendarTitle"
@@ -143,6 +144,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="14dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:paddingBottom="100dp"
+        android:clipToPadding="false"/>
 
 </LinearLayout>

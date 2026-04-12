@@ -2,12 +2,12 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
     android:orientation="vertical">
 
-    <!-- Header với icon + tên + actions -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,7 +18,6 @@
         android:background="#FFFFFF"
         android:orientation="horizontal">
 
-        <!-- Icon có nền màu bo tròn -->
         <FrameLayout
             android:layout_width="56dp"
             android:layout_height="56dp"
@@ -84,125 +83,144 @@
             android:paddingTop="20dp"
             android:paddingBottom="24dp">
 
-            <!-- 3 stat cards: Current Streak / Longest / Total -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 android:orientation="horizontal">
 
-                <!-- Current Streak -->
-                <LinearLayout
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
-                    android:background="#E8F5E9"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:paddingVertical="16dp"
-                    android:paddingHorizontal="8dp">
+                    app:cardBackgroundColor="#E8F5E9"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="🔥"
-                        android:textSize="24sp" />
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:paddingVertical="16dp"
+                        android:paddingHorizontal="8dp">
 
-                    <TextView
-                        android:id="@+id/tvDetailCurrentStreak"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="0 ngày"
-                        android:textColor="#2E7D32"
-                        android:textSize="17sp"
-                        android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🔥"
+                            android:textSize="24sp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Current Streak"
-                        android:textColor="#4CAF50"
-                        android:textSize="11sp" />
-                </LinearLayout>
+                        <TextView
+                            android:id="@+id/tvDetailCurrentStreak"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="0 ngày"
+                            android:textColor="#2E7D32"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
 
-                <!-- Longest Streak -->
-                <LinearLayout
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Current Streak"
+                            android:textColor="#4CAF50"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
-                    android:background="#F5F5F5"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:paddingVertical="16dp"
-                    android:paddingHorizontal="8dp">
+                    app:cardBackgroundColor="#F5F5F5"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="🚀"
-                        android:textSize="24sp" />
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:paddingVertical="16dp"
+                        android:paddingHorizontal="8dp">
 
-                    <TextView
-                        android:id="@+id/tvDetailLongestStreak"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="0 ngày"
-                        android:textColor="#1A1A1A"
-                        android:textSize="17sp"
-                        android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🚀"
+                            android:textSize="24sp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Longest Streak"
-                        android:textColor="#9E9E9E"
-                        android:textSize="11sp" />
-                </LinearLayout>
+                        <TextView
+                            android:id="@+id/tvDetailLongestStreak"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="0 ngày"
+                            android:textColor="#1A1A1A"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
 
-                <!-- Total Completed -->
-                <LinearLayout
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Longest Streak"
+                            android:textColor="#9E9E9E"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:background="#F5F5F5"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:paddingVertical="16dp"
-                    android:paddingHorizontal="8dp">
+                    app:cardBackgroundColor="#F5F5F5"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="✅"
-                        android:textSize="24sp" />
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:paddingVertical="16dp"
+                        android:paddingHorizontal="8dp">
 
-                    <TextView
-                        android:id="@+id/tvDetailTotalCompleted"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="0"
-                        android:textColor="#1A1A1A"
-                        android:textSize="17sp"
-                        android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="✅"
+                            android:textSize="24sp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Total completed"
-                        android:textColor="#9E9E9E"
-                        android:textSize="11sp" />
-                </LinearLayout>
+                        <TextView
+                            android:id="@+id/tvDetailTotalCompleted"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="0"
+                            android:textColor="#1A1A1A"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Total completed"
+                            android:textColor="#9E9E9E"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
-            <!-- Heatmap section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -212,18 +230,35 @@
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
-            <!-- Heatmap với scroll ngang -->
-            <HorizontalScrollView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                android:scrollbars="none">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-                <GridLayout
-                    android:id="@+id/gridHeatmap"
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </HorizontalScrollView>
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="6dp">
+                    <View android:layout_width="1dp" android:layout_height="20dp"/> <TextView android:layout_width="wrap_content" android:layout_height="20dp" android:gravity="center_vertical" android:text="T2" android:textSize="11sp" android:textColor="#9E9E9E"/>
+                    <View android:layout_width="1dp" android:layout_height="20dp"/> <TextView android:layout_width="wrap_content" android:layout_height="20dp" android:gravity="center_vertical" android:text="T4" android:textSize="11sp" android:textColor="#9E9E9E"/>
+                    <View android:layout_width="1dp" android:layout_height="20dp"/> <TextView android:layout_width="wrap_content" android:layout_height="20dp" android:gravity="center_vertical" android:text="T6" android:textSize="11sp" android:textColor="#9E9E9E"/>
+                    <View android:layout_width="1dp" android:layout_height="20dp"/> </LinearLayout>
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <GridLayout
+                        android:id="@+id/gridHeatmap"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:rowCount="7" />
+                </HorizontalScrollView>
+            </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
@@ -231,56 +266,70 @@
                 android:layout_marginBottom="18dp"
                 android:background="#F0F0F0" />
 
-            <!-- Thông tin habit -->
-            <LinearLayout
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:background="#F8F9FA"
-                android:orientation="horizontal"
-                android:padding="14dp">
+                app:cardBackgroundColor="#F8F9FA"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="🔄  "
-                    android:textSize="15sp" />
+                    android:orientation="horizontal"
+                    android:padding="14dp">
 
-                <TextView
-                    android:id="@+id/tvDetailFrequency"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Hàng ngày"
-                    android:textColor="#333333"
-                    android:textSize="15sp" />
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔄  "
+                        android:textSize="15sp" />
 
-            <LinearLayout
+                    <TextView
+                        android:id="@+id/tvDetailFrequency"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Hàng ngày"
+                        android:textColor="#333333"
+                        android:textSize="15sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#F8F9FA"
-                android:orientation="horizontal"
-                android:padding="14dp">
+                app:cardBackgroundColor="#F8F9FA"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="⏰  "
-                    android:textSize="15sp" />
+                    android:orientation="horizontal"
+                    android:padding="14dp">
 
-                <TextView
-                    android:id="@+id/tvDetailReminder"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Không bật nhắc nhở"
-                    android:textColor="#333333"
-                    android:textSize="15sp" />
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⏰  "
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/tvDetailReminder"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Không bật nhắc nhở"
+                        android:textColor="#333333"
+                        android:textSize="15sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Nút đóng ở dưới -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnDetailClose"
         android:layout_width="match_parent"

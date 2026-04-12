@@ -136,6 +136,21 @@ public class HabitDetailDialogFragment extends DialogFragment {
         return dialog;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        android.app.Dialog dialog = getDialog();
+        if (dialog != null && dialog.getWindow() != null) {
+            // 1. Ép chiều rộng và chiều cao tràn viền 100%
+            int width = android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+            int height = android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+            dialog.getWindow().setLayout(width, height);
+
+            // 2. Xóa bỏ cái viền mờ bo góc mặc định của hệ thống để nó phẳng lì ra sát mép
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.WHITE));
+        }
+    }
+
     // Hiển thị thông tin cơ bản của habit (không cần load từ DB)
     private void bindStaticInfo() {
         if (habit == null) return;
@@ -196,27 +211,25 @@ public class HabitDetailDialogFragment extends DialogFragment {
 
     /**
      * Vẽ heatmap: lưới 8 tuần x 7 ngày.
-     * Ô xanh = đã hoàn thành, ô xám = chưa hoàn thành.
      */
     private void drawHeatmap(boolean[] completedDays) {
-        if (gridHeatmap == null) return;
+        if (gridHeatmap == null || getContext() == null) return;
 
         gridHeatmap.removeAllViews();
         gridHeatmap.setColumnCount(8);  // 8 cột (8 tuần)
         gridHeatmap.setRowCount(7);     // 7 hàng (7 ngày trong tuần)
 
-        // Dữ liệu completedDays: index 0 = 55 ngày trước, index 55 = hôm nay
-        // Sắp xếp theo cột (tuần) từ trái sang phải, hàng (ngày) từ trên xuống
-
-        String habitColor = (habit != null) ? habit.getColor() : "#4CAF50";
+        String habitColor = (habit != null && !TextUtils.isEmpty(habit.getColor())) ? habit.getColor() : "#39D353";
+        float density = requireContext().getResources().getDisplayMetrics().density;
 
         for (int week = 0; week < 8; week++) {
             for (int day = 0; day < 7; day++) {
                 int index = week * 7 + day;
 
                 View cell = new View(requireContext());
-                int cellSize = (int) (16 * requireContext().getResources().getDisplayMetrics().density);
-                int cellMargin = (int) (2 * requireContext().getResources().getDisplayMetrics().density);
+
+                int cellSize = (int) (16 * density);
+                int cellMargin = (int) (2 * density);
 
                 GridLayout.LayoutParams params = new GridLayout.LayoutParams();
                 params.width = cellSize;
@@ -226,16 +239,17 @@ public class HabitDetailDialogFragment extends DialogFragment {
                 params.columnSpec = GridLayout.spec(week);
                 cell.setLayoutParams(params);
 
-                GradientDrawable drawable = new GradientDrawable();
-                drawable.setShape(GradientDrawable.RECTANGLE);
-                drawable.setCornerRadius(3);
+                // TỰ ĐÚC KHUÔN BẰNG JAVA (Không cần file bg_heatmap nữa)
+                android.graphics.drawable.GradientDrawable drawable = new android.graphics.drawable.GradientDrawable();
+                drawable.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+                drawable.setCornerRadius(3 * density); // Bo góc 3dp siêu mượt
 
                 if (index < completedDays.length && completedDays[index]) {
-                    // Ô đã hoàn thành: dùng màu của habit
-                    drawable.setColor(Color.parseColor(habitColor));
+                    // Ngày hoàn thành: Đổ màu của Habit
+                    drawable.setColor(android.graphics.Color.parseColor(habitColor));
                 } else {
-                    // Ô chưa hoàn thành: màu xám tối
-                    drawable.setColor(Color.parseColor("#2A2A2A"));
+                    // Ngày lười biếng: Màu xám đậm hơn một chút để nổi lên nền trắng
+                    drawable.setColor(android.graphics.Color.parseColor("#E0E0E0"));
                 }
 
                 cell.setBackground(drawable);

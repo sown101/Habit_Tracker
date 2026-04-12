@@ -241,9 +241,15 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
 
             txtTimerValue.setText(getTimerProgressText(itemView.getContext(), habit));
 
-            btnStartTimer.setText("▶");
-            btnStartTimer.setTextColor(Color.parseColor("#BFA7B0"));
-            setActionCircleStyle(btnStartTimer, false);
+            if (habit.isCompletedToday()) {
+                btnStartTimer.setText("✓");
+                btnStartTimer.setTextColor(Color.parseColor("#45D26A")); // Màu xanh lá khi hoàn thành
+                setActionCircleStyle(btnStartTimer, true);
+            } else {
+                btnStartTimer.setText("▶");
+                btnStartTimer.setTextColor(Color.parseColor("#BFA7B0")); // Màu xám khi chưa chạy xong
+                setActionCircleStyle(btnStartTimer, false);
+            }
 
             View.OnClickListener openTimerClick = v -> {
                 int position = getBindingAdapterPosition();

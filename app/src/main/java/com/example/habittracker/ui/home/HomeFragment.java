@@ -87,7 +87,10 @@ public class HomeFragment extends Fragment {
                 (requestKey, result) -> loadHabitsFromDatabase()
         );
 
-        loadHabitsFromDatabase();
+        getParentFragmentManager().setFragmentResultListener("refresh_habits", getViewLifecycleOwner(), (requestKey, result) -> {
+            // Khi nhận được tín hiệu, lập tức gọi lại hàm load dữ liệu
+            loadHabitsFromDatabase();
+        });
         return view;
     }
 
