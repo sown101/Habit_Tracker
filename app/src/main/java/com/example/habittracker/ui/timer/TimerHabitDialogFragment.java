@@ -9,7 +9,6 @@ import android.os.CountDownTimer;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -21,7 +20,6 @@ import com.example.habittracker.data.db.AppDatabase;
 import com.example.habittracker.data.model.Habit;
 import com.example.habittracker.data.model.HabitLog;
 import com.example.habittracker.utils.Constants;
-import com.google.android.material.card.MaterialCardView;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -31,10 +29,10 @@ public class TimerHabitDialogFragment extends DialogFragment {
 
     private static final String ARG_HABIT_ID = "arg_habit_id";
 
-    private View btnCloseTimer;
-    private View btnStopTimer;
+    private View btnPauseTimer;
+    private View btnResetTimer;
+    private View btnExitTimer;
     private View timerCircleWrap;
-    private View viewTimerDot;
     private View viewHabitIconBg;
 
     private TextView tvHabitName;
@@ -42,6 +40,9 @@ public class TimerHabitDialogFragment extends DialogFragment {
     private TextView tvTimer;
     private TextView tvTimerProgress;
     private TextView txtHabitIconEmoji;
+    private TextView txtPauseIcon;
+
+    private TimerRingView timerRingView;
 
     private Habit habit;
     private AppDatabase db;
@@ -84,11 +85,17 @@ public class TimerHabitDialogFragment extends DialogFragment {
         bindViews(view);
 
         db = AppDatabase.getInstance(requireContext());
-        timerPrefs = requireContext().getSharedPreferences(Constants.PREF_TIMER, requireContext().MODE_PRIVATE);
+        timerPrefs = requireContext().getSharedPreferences(
+                Constants.PREF_TIMER,
+                requireContext().MODE_PRIVATE
+        );
 
         setupClicks();
 
-        int habitId = getArguments() != null ? getArguments().getInt(ARG_HABIT_ID, -1) : -1;
+        int habitId = getArguments() != null
+                ? getArguments().getInt(ARG_HABIT_ID, -1)
+                : -1;
+
         if (habitId == -1) {
             dismissAllowingStateLoss();
             return;
@@ -98,42 +105,53 @@ public class TimerHabitDialogFragment extends DialogFragment {
     }
 
     private void bindViews(View view) {
-        btnCloseTimer = view.findViewById(R.id.btnCloseTimer);
-        btnStopTimer = view.findViewById(R.id.btnStopTimer);
+        btnPauseTimer = view.findViewById(R.id.btnPauseTimer);
+        btnResetTimer = view.findViewById(R.id.btnResetTimer);
+        btnExitTimer = view.findViewById(R.id.btnExitTimer);
         timerCircleWrap = view.findViewById(R.id.timerCircleWrap);
-        viewTimerDot = view.findViewById(R.id.viewTimerDot);
         viewHabitIconBg = view.findViewById(R.id.viewHabitIconBg);
+
+        timerRingView = view.findViewById(R.id.timerRingView);
 
         tvHabitName = view.findViewById(R.id.tvHabitName);
         tvTimerHint = view.findViewById(R.id.tvTimerHint);
         tvTimer = view.findViewById(R.id.tvTimer);
         tvTimerProgress = view.findViewById(R.id.tvTimerProgress);
         txtHabitIconEmoji = view.findViewById(R.id.txtHabitIconEmoji);
+        txtPauseIcon = view.findViewById(R.id.txtPauseIcon);
     }
 
     private void setupClicks() {
-        btnCloseTimer.setOnClickListener(v -> {
-            pauseTimerOnly();
+        btnPauseTimer.setOnClickListener(v -> {
+            if (isRunning) {
+                pauseTimerOnly();
+            } else {
+                startTimer();
+            }
+        });
+
+        btnResetTimer.setOnClickListener(v -> resetTimerOnly());
+
+        btnExitTimer.setOnClickListener(v -> {
+            saveRemainingTime();
             dismissAllowingStateLoss();
         });
 
-        btnStopTimer.setOnClickListener(v -> {
-            stopAndResetTimer();
-            dismissAllowingStateLoss();
+        timerCircleWrap.setOnClickListener(v -> {
+            if (isRunning) {
+                pauseTimerOnly();
+            } else if (remainingMillis > 0L) {
+                startTimer();
+            }
         });
 
-        timerCircleWrap.setOnClickListener(v -> togglePauseResume());
-        tvTimer.setOnClickListener(v -> togglePauseResume());
-    }
-
-    private void togglePauseResume() {
-        if (habit == null) return;
-
-        if (isRunning) {
-            pauseTimerOnly();
-        } else {
-            startTimer();
-        }
+        tvTimer.setOnClickListener(v -> {
+            if (isRunning) {
+                pauseTimerOnly();
+            } else if (remainingMillis > 0L) {
+                startTimer();
+            }
+        });
     }
 
     private void loadHabit(int habitId) {
@@ -157,7 +175,10 @@ public class TimerHabitDialogFragment extends DialogFragment {
                 getActivity().runOnUiThread(() -> {
                     bindHabitData();
                     updateTimerViews();
-                    startTimer();
+
+                    if (remainingMillis > 0L) {
+                        startTimer();
+                    }
                 });
             }
         }).start();
@@ -168,14 +189,9 @@ public class TimerHabitDialogFragment extends DialogFragment {
 
         tvHabitName.setText(habit.getTitle());
         txtHabitIconEmoji.setText(habit.getIconEmoji());
-
         applyIconBackgroundColor(habit.getColor());
-
-        if (habit.isCompletedToday()) {
-            tvTimerHint.setText("Hôm nay đã hoàn thành");
-        } else {
-            tvTimerHint.setText("Chạm vòng tròn để tạm dừng");
-        }
+        updateHintText();
+        updateActionButtons();
     }
 
     private void applyIconBackgroundColor(String colorHex) {
@@ -203,7 +219,8 @@ public class TimerHabitDialogFragment extends DialogFragment {
 
         cancelCurrentTimer();
         isRunning = true;
-        tvTimerHint.setText("Chạm vòng tròn để tạm dừng");
+        updateHintText();
+        updateActionButtons();
 
         countDownTimer = new CountDownTimer(remainingMillis, 1000L) {
             @Override
@@ -219,7 +236,7 @@ public class TimerHabitDialogFragment extends DialogFragment {
                 isRunning = false;
                 clearSavedTimer();
                 updateTimerViews();
-                tvTimerHint.setText("Hoàn thành");
+                updateActionButtons();
                 completeHabitByTimer();
             }
         };
@@ -231,15 +248,16 @@ public class TimerHabitDialogFragment extends DialogFragment {
         cancelCurrentTimer();
         saveRemainingTime();
         updateTimerViews();
-        tvTimerHint.setText("Đã tạm dừng - chạm vòng tròn để tiếp tục");
+        updateActionButtons();
     }
 
-    private void stopAndResetTimer() {
+    private void resetTimerOnly() {
         isRunning = false;
         cancelCurrentTimer();
         remainingMillis = totalMillis;
         clearSavedTimer();
         updateTimerViews();
+        updateActionButtons();
     }
 
     private void cancelCurrentTimer() {
@@ -275,43 +293,41 @@ public class TimerHabitDialogFragment extends DialogFragment {
         tvTimer.setText(formatHms(remainingMillis));
         tvTimerProgress.setText(formatMs(elapsedMillis) + " / " + formatMs(totalMillis));
 
-        updateCircleProgress(elapsedMillis, totalMillis);
+        float progress = totalMillis <= 0 ? 0f : (float) elapsedMillis / (float) totalMillis;
+        if (timerRingView != null) {
+            timerRingView.setProgress(progress);
+        }
+
+        tvTimer.setAlpha(isRunning ? 1f : 0.92f);
+        tvTimerProgress.setAlpha(isRunning ? 1f : 0.85f);
+
+        updateHintText();
     }
 
-    private void updateCircleProgress(long elapsedMillis, long totalMillis) {
-        if (viewTimerDot == null || totalMillis <= 0) return;
+    private void updateHintText() {
+        if (habit == null) return;
 
-        float progress = Math.max(0f, Math.min(1f, (float) elapsedMillis / (float) totalMillis));
+        if (remainingMillis <= 0L) {
+            tvTimerHint.setText("Hoàn thành");
+        } else if (isRunning) {
+            tvTimerHint.setText("Đang chạy - bấm pause để tạm dừng");
+        } else if (remainingMillis < totalMillis) {
+            tvTimerHint.setText("Đã tạm dừng - chọn tiếp tục, reset hoặc thoát");
+        } else {
+            tvTimerHint.setText("Bấm nút giữa để bắt đầu");
+        }
+    }
 
-        timerCircleWrap.post(() -> {
-            int size = timerCircleWrap.getWidth();
-            if (size <= 0) return;
-
-            float radius = size / 2f;
-            float strokeOffset = dp(18);
-            float orbitRadius = radius - strokeOffset;
-
-            double angle = Math.toRadians((progress * 360f) - 90f);
-
-            float centerX = radius;
-            float centerY = radius;
-
-            float dotCenterX = centerX + (float) (orbitRadius * Math.cos(angle));
-            float dotCenterY = centerY + (float) (orbitRadius * Math.sin(angle));
-
-            float dotHalfWidth = viewTimerDot.getWidth() / 2f;
-            float dotHalfHeight = viewTimerDot.getHeight() / 2f;
-
-            viewTimerDot.animate()
-                    .x(dotCenterX - dotHalfWidth)
-                    .y(dotCenterY - dotHalfHeight)
-                    .setDuration(300)
-                    .setInterpolator(new DecelerateInterpolator())
-                    .start();
-
-            viewTimerDot.setAlpha(isRunning ? 1f : 0.55f);
-            tvTimer.setAlpha(isRunning ? 1f : 0.9f);
-        });
+    private void updateActionButtons() {
+        if (isRunning) {
+            btnResetTimer.setVisibility(View.GONE);
+            btnExitTimer.setVisibility(View.GONE);
+            txtPauseIcon.setText("❚❚");
+        } else {
+            btnResetTimer.setVisibility(View.VISIBLE);
+            btnExitTimer.setVisibility(View.VISIBLE);
+            txtPauseIcon.setText("▶");
+        }
     }
 
     private void completeHabitByTimer() {
@@ -404,6 +420,8 @@ public class TimerHabitDialogFragment extends DialogFragment {
         super.onPause();
         if (isRunning) {
             pauseTimerOnly();
+        } else {
+            saveRemainingTime();
         }
     }
 

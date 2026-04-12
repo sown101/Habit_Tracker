@@ -1,7 +1,6 @@
 package com.example.habittracker.ui.home;
 
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,7 +54,7 @@ public class HomeFragment extends Fragment {
         txtGreeting = view.findViewById(R.id.txtGreeting);
 
         String userName = SessionManager.getUserName(requireContext());
-        if (userName != null && !userName.equals("Local User") && !userName.isEmpty()) {
+        if (userName != null && !userName.isEmpty() && !"Local User".equals(userName)) {
             txtGreeting.setText("Hello,\n" + userName + "!");
         }
 
@@ -69,12 +68,12 @@ public class HomeFragment extends Fragment {
                 new HabitAdapter.OnCounterActionListener() {
                     @Override
                     public void onCounterPlus(Habit habit, int position) {
-                        updateCounterHabit(habit, position, 1);
+                        updateCounterHabit(habit, position, 1, false);
                     }
 
                     @Override
                     public void onCounterMinus(Habit habit, int position) {
-                        updateCounterHabit(habit, position, -1);
+                        updateCounterHabit(habit, position, 0, true);
                     }
                 },
                 (habit, position) -> openTimerHabit(habit)
@@ -129,8 +128,8 @@ public class HomeFragment extends Fragment {
                 HabitLog todayLog = db.habitLogDao().getLogByHabitAndDate(habit.getId(), today);
 
                 int currentValue = todayLog != null ? todayLog.getCurrentValue() : 0;
-
                 boolean completedToday;
+
                 if (habit.isCounterHabit()) {
                     completedToday = currentValue >= habit.getSafeTargetValue();
                 } else if (habit.isTimerHabit()) {
@@ -142,23 +141,23 @@ public class HomeFragment extends Fragment {
                 habit.setCurrentValueToday(currentValue);
                 habit.setCompletedToday(completedToday);
 
-                int habitStreak = DailyCompletionUtils.calculateHabitCurrentStreak(db, habit.getId());
-                habit.setCurrentStreak(habitStreak);
+                int streak = DailyCompletionUtils.calculateHabitCurrentStreak(db, habit.getId());
+                habit.setCurrentStreak(streak);
 
                 if (completedToday) {
                     completedCount++;
                 }
             }
 
-            int totalStreak = DailyCompletionUtils.calculateCurrentDayStreak(db, userId);
+            int dayStreak = DailyCompletionUtils.calculateCurrentDayStreak(db, userId);
             int finalCompletedCount = completedCount;
-            int finalTotalStreak = totalStreak;
+            int finalDayStreak = dayStreak;
 
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     adapter.updateData(habits);
                     updateProgressText(finalCompletedCount, habits.size());
-                    tvStreakCount.setText(String.valueOf(finalTotalStreak));
+                    tvStreakCount.setText(String.valueOf(finalDayStreak));
                 });
             }
         }).start();
@@ -212,7 +211,7 @@ public class HomeFragment extends Fragment {
         }).start();
     }
 
-    private void updateCounterHabit(Habit habit, int position, int delta) {
+    private void updateCounterHabit(Habit habit, int position, int delta, boolean resetToZero) {
         if (habit == null || position == RecyclerView.NO_POSITION) {
             return;
         }
@@ -225,7 +224,14 @@ public class HomeFragment extends Fragment {
 
             int targetValue = habit.getSafeTargetValue();
             int currentValue = existingLog != null ? existingLog.getCurrentValue() : 0;
-            int newValue = Math.max(0, currentValue + delta);
+
+            int newValue;
+            if (resetToZero) {
+                newValue = 0;
+            } else {
+                newValue = Math.min(targetValue, currentValue + delta);
+            }
+
             boolean isCompleted = newValue >= targetValue;
 
             if (existingLog == null) {
@@ -252,10 +258,17 @@ public class HomeFragment extends Fragment {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     loadHabitsFromDatabase();
-                    String actionText = delta > 0
-                            ? "+1 " + habit.getDisplayUnit()
-                            : "-1 " + habit.getDisplayUnit();
-                    Toast.makeText(requireContext(), actionText, Toast.LENGTH_SHORT).show();
+
+                    String message;
+                    if (resetToZero) {
+                        message = "Đã đặt lại về 0";
+                    } else if (isCompleted) {
+                        message = "Đã đạt mục tiêu";
+                    } else {
+                        message = "+1 " + habit.getDisplayUnit();
+                    }
+
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
                 });
             }
         }).start();

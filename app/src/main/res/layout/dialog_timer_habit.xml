@@ -6,15 +6,6 @@
     android:background="#0B0714"
     android:padding="24dp">
 
-    <ImageView
-        android:id="@+id/btnCloseTimer"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="#E7DBFF" />
-
     <FrameLayout
         android:id="@+id/iconContainer"
         android:layout_width="84dp"
@@ -22,7 +13,7 @@
         android:layout_marginTop="28dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnCloseTimer">
+        app:layout_constraintTop_toTopOf="parent">
 
         <View
             android:id="@+id/viewHabitIconBg"
@@ -71,30 +62,18 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="36dp"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="36dp"
-        app:layout_constraintBottom_toTopOf="@id/btnStopTimer"
+        android:layout_marginBottom="28dp"
+        app:layout_constraintBottom_toTopOf="@id/layoutBottomActions"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTimerHint">
 
-        <!-- Vòng nền -->
-        <View
-            android:id="@+id/viewTimerRingBg"
+        <com.example.habittracker.ui.timer.TimerRingView
+            android:id="@+id/timerRingView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/bg_timer_circle" />
+            android:layout_height="match_parent" />
 
-        <!-- Chấm sáng trên đỉnh -->
-        <View
-            android:id="@+id/viewTimerDot"
-            android:layout_width="44dp"
-            android:layout_height="18dp"
-            android:layout_gravity="top|center_horizontal"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_timer_dot" />
-
-        <!-- Text thời gian -->
         <TextView
             android:id="@+id/tvTimer"
             android:layout_width="wrap_content"
@@ -102,10 +81,9 @@
             android:layout_gravity="center"
             android:text="00:15:00"
             android:textColor="#CDBDFF"
-            android:textSize="50sp"
+            android:textSize="56sp"
             android:textStyle="bold" />
 
-        <!-- Progress text -->
         <TextView
             android:id="@+id/tvTimerProgress"
             android:layout_width="wrap_content"
@@ -115,24 +93,72 @@
             android:text="00:00 / 15:00"
             android:textColor="#9D91C5"
             android:textSize="16sp" />
-
     </FrameLayout>
 
-    <FrameLayout
-        android:id="@+id/btnStopTimer"
-        android:layout_width="88dp"
-        android:layout_height="88dp"
+    <LinearLayout
+        android:id="@+id/layoutBottomActions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
         android:layout_marginBottom="24dp"
-        android:background="@drawable/bg_stop_circle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <View
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center"
-            android:background="#4B3A78" />
-    </FrameLayout>
+        <FrameLayout
+            android:id="@+id/btnResetTimer"
+            android:layout_width="74dp"
+            android:layout_height="74dp"
+            android:layout_marginEnd="18dp"
+            android:background="@drawable/bg_pause_secondary_circle"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="↺"
+                android:textColor="#D6CCF2"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/btnPauseTimer"
+            android:layout_width="88dp"
+            android:layout_height="88dp"
+            android:background="@drawable/bg_stop_circle">
+
+            <TextView
+                android:id="@+id/txtPauseIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="❚❚"
+                android:textColor="#4B3A78"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/btnExitTimer"
+            android:layout_width="74dp"
+            android:layout_height="74dp"
+            android:layout_marginStart="18dp"
+            android:background="@drawable/bg_pause_secondary_circle"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="✕"
+                android:textColor="#D6CCF2"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

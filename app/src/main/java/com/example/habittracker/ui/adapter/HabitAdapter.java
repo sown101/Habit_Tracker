@@ -7,7 +7,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -96,11 +95,9 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
         private final LinearLayout layoutCounterAction;
         private final LinearLayout layoutTimerAction;
 
-        private final CheckBox cbHabitComplete;
-
+        private final TextView btnCompleteTask;
         private final TextView btnPlus;
         private final TextView txtCounterValue;
-
         private final TextView btnStartTimer;
         private final TextView txtTimerValue;
 
@@ -120,7 +117,7 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
             layoutCounterAction = itemView.findViewById(R.id.layoutCounterAction);
             layoutTimerAction = itemView.findViewById(R.id.layoutTimerAction);
 
-            cbHabitComplete = itemView.findViewById(R.id.cbHabitComplete);
+            btnCompleteTask = itemView.findViewById(R.id.btnCompleteTask);
 
             btnPlus = itemView.findViewById(R.id.btnPlus);
             txtCounterValue = itemView.findViewById(R.id.txtCounterValue);
@@ -149,10 +146,11 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
                 bindTaskHabit(habit);
             }
 
-            float contentAlpha = habit.isCompletedToday() ? 0.75f : 1f;
+            float contentAlpha = habit.isCompletedToday() ? 0.78f : 1f;
             txtHabitTitle.setAlpha(contentAlpha);
             txtHabitSub.setAlpha(contentAlpha);
             txtHabitStreak.setAlpha(contentAlpha);
+            layoutActionContainer.setAlpha(1f);
 
             itemView.setOnClickListener(v -> {
                 Context context = itemView.getContext();
@@ -170,15 +168,26 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
             layoutCounterAction.setVisibility(View.GONE);
             layoutTimerAction.setVisibility(View.GONE);
 
-            cbHabitComplete.setOnCheckedChangeListener(null);
-            cbHabitComplete.setChecked(habit.isCompletedToday());
+            if (habit.isCompletedToday()) {
+                btnCompleteTask.setText("✓");
+                btnCompleteTask.setTextColor(Color.parseColor("#45D26A"));
+                setActionCircleStyle(btnCompleteTask, true);
+            } else {
+                btnCompleteTask.setText("✓");
+                btnCompleteTask.setTextColor(Color.parseColor("#BFA7B0"));
+                setActionCircleStyle(btnCompleteTask, false);
+            }
 
-            cbHabitComplete.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            btnCompleteTask.setOnClickListener(v -> {
                 int position = getBindingAdapterPosition();
                 if (position == RecyclerView.NO_POSITION) return;
 
                 if (checkedChangeListener != null) {
-                    checkedChangeListener.onHabitCheckedChanged(habit, isChecked, position);
+                    checkedChangeListener.onHabitCheckedChanged(
+                            habit,
+                            !habit.isCompletedToday(),
+                            position
+                    );
                 }
             });
         }
@@ -199,12 +208,28 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
                     habit.getDisplayUnit()
             ));
 
+            boolean reachedTarget = current >= target;
+
+            if (reachedTarget) {
+                btnPlus.setText("✓");
+                btnPlus.setTextColor(Color.parseColor("#45D26A"));
+                setActionCircleStyle(btnPlus, true);
+            } else {
+                btnPlus.setText("+");
+                btnPlus.setTextColor(Color.parseColor("#BFA7B0"));
+                setActionCircleStyle(btnPlus, false);
+            }
+
             btnPlus.setOnClickListener(v -> {
                 int position = getBindingAdapterPosition();
                 if (position == RecyclerView.NO_POSITION) return;
 
                 if (counterActionListener != null) {
-                    counterActionListener.onCounterPlus(habit, position);
+                    if (reachedTarget) {
+                        counterActionListener.onCounterMinus(habit, position);
+                    } else {
+                        counterActionListener.onCounterPlus(habit, position);
+                    }
                 }
             });
         }
@@ -215,6 +240,10 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
             layoutTimerAction.setVisibility(View.VISIBLE);
 
             txtTimerValue.setText(getTimerProgressText(itemView.getContext(), habit));
+
+            btnStartTimer.setText("▶");
+            btnStartTimer.setTextColor(Color.parseColor("#BFA7B0"));
+            setActionCircleStyle(btnStartTimer, false);
 
             View.OnClickListener openTimerClick = v -> {
                 int position = getBindingAdapterPosition();
@@ -309,6 +338,20 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
             } catch (Exception e) {
                 cardHabit.setCardBackgroundColor(Color.parseColor("#161616"));
             }
+        }
+
+        private void setActionCircleStyle(TextView view, boolean active) {
+            GradientDrawable bg = new GradientDrawable();
+            bg.setShape(GradientDrawable.OVAL);
+            bg.setColor(Color.TRANSPARENT);
+
+            if (active) {
+                bg.setStroke(2, Color.parseColor("#45D26A"));
+            } else {
+                bg.setStroke(2, Color.parseColor("#8B6B77"));
+            }
+
+            view.setBackground(bg);
         }
     }
 }
