@@ -3,17 +3,17 @@ package com.example.habittracker.ui.adapter;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.text.TextUtils;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -83,17 +83,21 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
     }
 
     class HabitViewHolder extends RecyclerView.ViewHolder {
-        private final ImageView imgHabitIcon;
+
+        private final CardView cardHabit;
+        private final TextView txtIconEmoji;
+        private final View viewIconBg;
         private final TextView txtHabitTitle;
-        private final TextView txtHabitTime;
-        private final CheckBox cbHabitComplete;
+        private final TextView txtHabitStreak;
+        private final TextView txtHabitSub;
 
         private final FrameLayout layoutActionContainer;
         private final LinearLayout layoutCompleteAction;
         private final LinearLayout layoutCounterAction;
         private final LinearLayout layoutTimerAction;
 
-        private final TextView btnMinus;
+        private final CheckBox cbHabitComplete;
+
         private final TextView btnPlus;
         private final TextView txtCounterValue;
 
@@ -102,17 +106,22 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
 
         HabitViewHolder(@NonNull View itemView) {
             super(itemView);
-            imgHabitIcon = itemView.findViewById(R.id.imgHabitIcon);
+
+            cardHabit = (CardView) itemView;
+
+            txtIconEmoji = itemView.findViewById(R.id.txtIconEmoji);
+            viewIconBg = itemView.findViewById(R.id.viewIconBg);
             txtHabitTitle = itemView.findViewById(R.id.txtHabitTitle);
-            txtHabitTime = itemView.findViewById(R.id.txtHabitTime);
-            cbHabitComplete = itemView.findViewById(R.id.cbHabitComplete);
+            txtHabitStreak = itemView.findViewById(R.id.txtHabitStreak);
+            txtHabitSub = itemView.findViewById(R.id.txtHabitSub);
 
             layoutActionContainer = itemView.findViewById(R.id.layoutActionContainer);
             layoutCompleteAction = itemView.findViewById(R.id.layoutCompleteAction);
             layoutCounterAction = itemView.findViewById(R.id.layoutCounterAction);
             layoutTimerAction = itemView.findViewById(R.id.layoutTimerAction);
 
-            btnMinus = itemView.findViewById(R.id.btnMinus);
+            cbHabitComplete = itemView.findViewById(R.id.cbHabitComplete);
+
             btnPlus = itemView.findViewById(R.id.btnPlus);
             txtCounterValue = itemView.findViewById(R.id.txtCounterValue);
 
@@ -121,8 +130,16 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
         }
 
         void bind(Habit habit) {
+            txtIconEmoji.setText(habit.getIconEmoji());
             txtHabitTitle.setText(habit.getTitle());
-            txtHabitTime.setText(buildSubtitle(habit));
+
+            int streak = habit.getCurrentStreak();
+            txtHabitStreak.setText("🔥 " + streak + (streak <= 1 ? " Day" : " Days"));
+
+            txtHabitSub.setText(buildSubtitle(habit));
+
+            setIconBackground(habit.getColor());
+            setCardBackground(habit.getColor(), habit.isCompletedToday());
 
             if (habit.isTimerHabit()) {
                 bindTimerHabit(habit);
@@ -132,13 +149,18 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
                 bindTaskHabit(habit);
             }
 
-            updateVisualState(habit);
+            float contentAlpha = habit.isCompletedToday() ? 0.75f : 1f;
+            txtHabitTitle.setAlpha(contentAlpha);
+            txtHabitSub.setAlpha(contentAlpha);
+            txtHabitStreak.setAlpha(contentAlpha);
 
             itemView.setOnClickListener(v -> {
-                if (itemView.getContext() instanceof FragmentActivity) {
-                    FragmentActivity activity = (FragmentActivity) itemView.getContext();
-                    HabitDetailDialogFragment dialog = HabitDetailDialogFragment.newInstance(habit);
-                    dialog.show(activity.getSupportFragmentManager(), "habit_detail_dialog");
+                Context context = itemView.getContext();
+                if (context instanceof FragmentActivity) {
+                    HabitDetailDialogFragment dialog =
+                            HabitDetailDialogFragment.newInstance(habit);
+                    dialog.show(((FragmentActivity) context).getSupportFragmentManager(),
+                            "habit_detail_dialog");
                 }
             });
         }
@@ -168,22 +190,21 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
 
             int current = Math.max(0, habit.getCurrentValueToday());
             int target = habit.getSafeTargetValue();
-            txtCounterValue.setText(String.format(Locale.getDefault(), "%d/%d", current, target));
-            btnMinus.setAlpha(current > 0 ? 1f : 0.4f);
+
+            txtCounterValue.setText(String.format(
+                    Locale.getDefault(),
+                    "%d / %d %s",
+                    current,
+                    target,
+                    habit.getDisplayUnit()
+            ));
 
             btnPlus.setOnClickListener(v -> {
                 int position = getBindingAdapterPosition();
                 if (position == RecyclerView.NO_POSITION) return;
+
                 if (counterActionListener != null) {
                     counterActionListener.onCounterPlus(habit, position);
-                }
-            });
-
-            btnMinus.setOnClickListener(v -> {
-                int position = getBindingAdapterPosition();
-                if (position == RecyclerView.NO_POSITION) return;
-                if (counterActionListener != null) {
-                    counterActionListener.onCounterMinus(habit, position);
                 }
             });
         }
@@ -193,90 +214,101 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
             layoutCounterAction.setVisibility(View.GONE);
             layoutTimerAction.setVisibility(View.VISIBLE);
 
-            txtTimerValue.setText(getTimerPreview(itemView.getContext(), habit));
+            txtTimerValue.setText(getTimerProgressText(itemView.getContext(), habit));
 
-            btnStartTimer.setOnClickListener(v -> {
+            View.OnClickListener openTimerClick = v -> {
                 int position = getBindingAdapterPosition();
                 if (position == RecyclerView.NO_POSITION) return;
+
                 if (timerActionListener != null) {
                     timerActionListener.onTimerClick(habit, position);
                 }
-            });
+            };
+
+            btnStartTimer.setOnClickListener(openTimerClick);
+            txtTimerValue.setOnClickListener(openTimerClick);
         }
 
         private String buildSubtitle(Habit habit) {
-            String frequency = safeText(habit.getFrequency());
+            String frequency = mapFrequency(habit.getFrequencyType());
 
             if (habit.isTimerHabit()) {
-                String timerText = formatMinutesToShort(habit.getSafeTargetValue());
-                return TextUtils.isEmpty(frequency) ? timerText : timerText + " • " + frequency;
+                return frequency;
             }
 
             if (habit.isCounterHabit()) {
                 int current = Math.max(0, habit.getCurrentValueToday());
                 int target = habit.getSafeTargetValue();
-                String unit = safeText(habit.getDisplayUnit());
-
-                String progress = String.format(
-                        Locale.getDefault(),
-                        "%d/%d %s",
-                        current,
-                        target,
-                        unit
-                ).trim();
-
-                if (!TextUtils.isEmpty(frequency)) {
-                    return habit.isCompletedToday()
-                            ? progress + " • " + frequency + " • Đã đạt mục tiêu"
-                            : progress + " • " + frequency;
-                }
-                return habit.isCompletedToday() ? progress + " • Đã đạt mục tiêu" : progress;
+                return frequency + " • " + current + "/" + target + " " + habit.getDisplayUnit();
             }
 
-            if (!TextUtils.isEmpty(frequency)) {
-                return frequency + (habit.isCompletedToday() ? " • Hoàn thành" : " • Chưa hoàn thành");
-            }
-            return habit.isCompletedToday() ? "Hoàn thành" : "Chưa hoàn thành";
+            return frequency;
         }
 
-        private void updateVisualState(Habit habit) {
-            if (habit.isCompletedToday()) {
-                txtHabitTitle.setAlpha(0.75f);
-                txtHabitTime.setAlpha(0.75f);
-                imgHabitIcon.setAlpha(0.75f);
-                txtHabitTime.setTextColor(Color.parseColor("#2E7D32"));
-            } else {
-                txtHabitTitle.setAlpha(1f);
-                txtHabitTime.setAlpha(1f);
-                imgHabitIcon.setAlpha(1f);
-                txtHabitTime.setTextColor(Color.parseColor("#757575"));
-            }
+        private String getTimerProgressText(Context context, Habit habit) {
+            SharedPreferences prefs = context.getSharedPreferences(
+                    Constants.PREF_TIMER,
+                    Context.MODE_PRIVATE
+            );
+
+            long totalMillis = habit.getSafeTargetValue() * 60L * 1000L;
+            long remainingMillis = prefs.getLong("timer_remaining_" + habit.getId(), totalMillis);
+            remainingMillis = Math.max(0L, Math.min(remainingMillis, totalMillis));
+
+            long elapsedMillis = totalMillis - remainingMillis;
+
+            return formatMinuteSecond(elapsedMillis) + " / " + formatMinuteSecond(totalMillis);
         }
 
-        private String safeText(String value) {
-            return value == null ? "" : value.trim();
-        }
-
-        private String formatMinutesToShort(int minutes) {
-            return String.format(Locale.getDefault(), "%02d:00", Math.max(0, minutes));
-        }
-
-        private String getTimerPreview(Context context, Habit habit) {
-            SharedPreferences prefs =
-                    context.getSharedPreferences(Constants.PREF_TIMER, Context.MODE_PRIVATE);
-
-            long defaultMillis = habit.getSafeTargetValue() * 60L * 1000L;
-            long remaining = prefs.getLong("timer_remaining_" + habit.getId(), defaultMillis);
-
-            if (remaining <= 0) {
-                remaining = defaultMillis;
-            }
-
-            long totalSeconds = remaining / 1000;
-            long minutes = totalSeconds / 60;
-            long seconds = totalSeconds % 60;
-
+        private String formatMinuteSecond(long millis) {
+            long totalSeconds = Math.max(0L, millis / 1000L);
+            long minutes = totalSeconds / 60L;
+            long seconds = totalSeconds % 60L;
             return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
+        }
+
+        private String mapFrequency(String frequencyType) {
+            if (Constants.FREQUENCY_WEEKLY.equalsIgnoreCase(frequencyType)) {
+                return "Weekly";
+            }
+            if (Constants.FREQUENCY_MONTHLY.equalsIgnoreCase(frequencyType)) {
+                return "Monthly";
+            }
+            return "Today";
+        }
+
+        private void setIconBackground(String colorHex) {
+            try {
+                GradientDrawable drawable = new GradientDrawable();
+                drawable.setShape(GradientDrawable.OVAL);
+                drawable.setColor(Color.parseColor(colorHex));
+                viewIconBg.setBackground(drawable);
+            } catch (Exception e) {
+                GradientDrawable drawable = new GradientDrawable();
+                drawable.setShape(GradientDrawable.OVAL);
+                drawable.setColor(Color.parseColor("#4CAF50"));
+                viewIconBg.setBackground(drawable);
+            }
+        }
+
+        private void setCardBackground(String colorHex, boolean completed) {
+            try {
+                int baseColor = Color.parseColor(colorHex);
+
+                int r = (int) (Color.red(baseColor) * 0.16f);
+                int g = (int) (Color.green(baseColor) * 0.16f);
+                int b = (int) (Color.blue(baseColor) * 0.16f);
+
+                if (completed) {
+                    r = Math.min(255, r + 6);
+                    g = Math.min(255, g + 14);
+                    b = Math.min(255, b + 6);
+                }
+
+                cardHabit.setCardBackgroundColor(Color.rgb(r, g, b));
+            } catch (Exception e) {
+                cardHabit.setCardBackgroundColor(Color.parseColor("#161616"));
+            }
         }
     }
 }

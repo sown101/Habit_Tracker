@@ -14,13 +14,15 @@ import com.example.habittracker.data.model.HabitLog;
 import com.example.habittracker.data.model.Reminder;
 import com.example.habittracker.utils.Constants;
 
+// Tăng version lên 3 vì thêm 2 cột mới: icon_emoji và color vào bảng habits
+// fallbackToDestructiveMigration() sẽ xóa và tạo lại DB nếu version thay đổi
 @Database(
         entities = {
                 Habit.class,
                 HabitLog.class,
                 Reminder.class
         },
-        version = 2,
+        version = 3,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -40,7 +42,7 @@ public abstract class AppDatabase extends RoomDatabase {
                                     AppDatabase.class,
                                     Constants.DATABASE_NAME
                             )
-                            .fallbackToDestructiveMigration()
+                            .fallbackToDestructiveMigration() // Xóa DB cũ khi đổi version
                             .build();
                 }
             }

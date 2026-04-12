@@ -1,25 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@drawable/bg_border_card"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:orientation="vertical">
 
+    <!-- Header với icon + tên + actions -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="16dp"
+        android:background="#FFFFFF"
         android:orientation="horizontal">
+
+        <!-- Icon có nền màu bo tròn -->
+        <FrameLayout
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginEnd="14dp">
+
+            <View
+                android:id="@+id/viewDetailIconBg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:id="@+id/tvDetailIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="⭐"
+                android:textSize="28sp" />
+        </FrameLayout>
 
         <TextView
             android:id="@+id/tvDetailName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Tên thói quen"
-            android:textColor="@color/black"
+            android:text="Habit Name"
+            android:textColor="#1A1A1A"
             android:textSize="22sp"
             android:textStyle="bold" />
 
@@ -28,90 +53,246 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_edit" />
+            android:src="@android:drawable/ic_menu_edit"
+            app:tint="#9E9E9E" />
 
         <ImageButton
             android:id="@+id/btnDeleteHabit"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_delete"
             app:tint="#F44336" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvDetailCategory"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:background="@drawable/bg_pill_gray"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="4dp"
-        android:text="Phân loại"
-        android:textColor="#757575"
-        android:textSize="12sp" />
-
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginVertical="16dp"
-        android:background="#E0E0E0" />
+        android:background="#F0F0F0" />
 
-    <TextView
-        android:id="@+id/tvDetailTarget"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="🎯 Mục tiêu: 2 lít"
-        android:textColor="@color/black"
-        android:textSize="16sp" />
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-    <TextView
-        android:id="@+id/tvDetailFrequency"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="🔄 Tần suất: Hàng ngày"
-        android:textColor="@color/black"
-        android:textSize="16sp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="24dp">
 
-    <TextView
-        android:id="@+id/tvDetailReminder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:text="⏰ Nhắc nhở: 07:00"
-        android:textColor="@color/black"
-        android:textSize="16sp" />
+            <!-- 3 stat cards: Current Streak / Longest / Total -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/tvTodayStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:text="Trạng thái hôm nay: Chưa hoàn thành (0/1)"
-        android:textColor="#424242"
-        android:textSize="15sp"
-        android:textStyle="bold" />
+                <!-- Current Streak -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:background="#E8F5E9"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingVertical="16dp"
+                    android:paddingHorizontal="8dp">
 
-    <CheckBox
-        android:id="@+id/cbDetailComplete"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:text="Đánh dấu hoàn thành hôm nay"
-        android:textColor="@color/black"
-        android:textSize="15sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔥"
+                        android:textSize="24sp" />
 
-    <Button
+                    <TextView
+                        android:id="@+id/tvDetailCurrentStreak"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="0 ngày"
+                        android:textColor="#2E7D32"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Current Streak"
+                        android:textColor="#4CAF50"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- Longest Streak -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:background="#F5F5F5"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingVertical="16dp"
+                    android:paddingHorizontal="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🚀"
+                        android:textSize="24sp" />
+
+                    <TextView
+                        android:id="@+id/tvDetailLongestStreak"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="0 ngày"
+                        android:textColor="#1A1A1A"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Longest Streak"
+                        android:textColor="#9E9E9E"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- Total Completed -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="#F5F5F5"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingVertical="16dp"
+                    android:paddingHorizontal="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="✅"
+                        android:textSize="24sp" />
+
+                    <TextView
+                        android:id="@+id/tvDetailTotalCompleted"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="0"
+                        android:textColor="#1A1A1A"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Total completed"
+                        android:textColor="#9E9E9E"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Heatmap section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:text="8 tuần gần nhất"
+                android:textColor="#757575"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <!-- Heatmap với scroll ngang -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:scrollbars="none">
+
+                <GridLayout
+                    android:id="@+id/gridHeatmap"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </HorizontalScrollView>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="18dp"
+                android:background="#F0F0F0" />
+
+            <!-- Thông tin habit -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:background="#F8F9FA"
+                android:orientation="horizontal"
+                android:padding="14dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔄  "
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailFrequency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hàng ngày"
+                    android:textColor="#333333"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#F8F9FA"
+                android:orientation="horizontal"
+                android:padding="14dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⏰  "
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailReminder"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Không bật nhắc nhở"
+                    android:textColor="#333333"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Nút đóng ở dưới -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnDetailClose"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:backgroundTint="#F5F5F5"
+        android:layout_height="56dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginVertical="16dp"
         android:text="Đóng"
-        android:textColor="#424242"
-        android:textStyle="bold" />
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:backgroundTint="#A855F7"
+        app:cornerRadius="28dp"
+        app:elevation="0dp" />
 
 </LinearLayout>

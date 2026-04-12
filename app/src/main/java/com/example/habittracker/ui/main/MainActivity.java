@@ -5,6 +5,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -25,10 +27,10 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 101;
 
-    private ImageView navHome;
-    private ImageView navStats;
-    private ImageView navSettings;
-    private ImageView navCalendar;
+    private LinearLayout navHome;
+    private LinearLayout navStats;
+    private LinearLayout navSettings;
+    private LinearLayout navCalendar;
     private FloatingActionButton navAdd;
 
     @Override
@@ -48,17 +50,58 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             openHomeFragment();
+            setSelectedNav(navHome);
         }
 
-        navHome.setOnClickListener(v -> openHomeFragment());
-        navStats.setOnClickListener(v -> openStatsFragment());
-        navCalendar.setOnClickListener(v -> openCalendarFragment());
-        navSettings.setOnClickListener(v -> openSettingsFragment());
+        navHome.setOnClickListener(v -> {
+            openHomeFragment();
+            setSelectedNav(navHome);
+        });
+
+        navStats.setOnClickListener(v -> {
+            openStatsFragment();
+            setSelectedNav(navStats);
+        });
+
+        navCalendar.setOnClickListener(v -> {
+            openCalendarFragment();
+            setSelectedNav(navCalendar);
+        });
+
+        navSettings.setOnClickListener(v -> {
+            openSettingsFragment();
+            setSelectedNav(navSettings);
+        });
 
         navAdd.setOnClickListener(v -> {
             AddHabit bottomSheet = new AddHabit();
             bottomSheet.show(getSupportFragmentManager(), "AddHabitBottomSheet");
         });
+    }
+
+    private void setSelectedNav(LinearLayout selectedNav) {
+        resetNav(navHome);
+        resetNav(navCalendar);
+        resetNav(navStats);
+        resetNav(navSettings);
+
+        setNavColors(selectedNav, "#23C552");
+    }
+
+    private void resetNav(LinearLayout nav) {
+        setNavColors(nav, "#BDBDBD");
+    }
+
+    private void setNavColors(LinearLayout nav, String colorHex) {
+        if (nav == null) return;
+
+        for (int i = 0; i < nav.getChildCount(); i++) {
+            if (nav.getChildAt(i) instanceof ImageView) {
+                ((ImageView) nav.getChildAt(i)).setColorFilter(android.graphics.Color.parseColor(colorHex));
+            } else if (nav.getChildAt(i) instanceof TextView) {
+                ((TextView) nav.getChildAt(i)).setTextColor(android.graphics.Color.parseColor(colorHex));
+            }
+        }
     }
 
     private void openHomeFragment() {

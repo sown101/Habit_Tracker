@@ -1,382 +1,335 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardBackgroundColor="@android:color/white"
-    app:cardCornerRadius="28dp"
-    app:cardElevation="0dp">
+    android:background="#111111">
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fillViewport="true"
-        android:overScrollMode="never">
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="32dp">
 
+        <!-- Drag handle -->
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:background="#444444" />
+
+        <!-- Tiêu đề -->
+        <TextView
+            android:id="@+id/tvSheetTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="20dp"
+            android:text="Thêm thói quen"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- Preview icon đang được chọn -->
+        <FrameLayout
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp">
+
+            <View
+                android:id="@+id/viewSelectedIconBg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:id="@+id/txtSelectedIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="⭐"
+                android:textSize="32sp" />
+        </FrameLayout>
+
+        <!-- Grid icon (tạo bằng code trong AddHabit.java) -->
+        <LinearLayout
+            android:id="@+id/iconPickerGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:orientation="vertical" />
+
+        <!-- Hàng chọn màu -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/colorPickerRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="4dp" />
+        </HorizontalScrollView>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:layout_marginBottom="20dp" android:background="#2A2A2A" />
+
+        <!-- Tên habit -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp" android:text="Tên thói quen"
+            android:textColor="#AAAAAA" android:textSize="13sp" />
+
+        <EditText
+            android:id="@+id/edtHabitName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="#1E1E1E"
+            android:hint="Nhập tên thói quen..."
+            android:inputType="text"
+            android:padding="14dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#555555"
+            android:textSize="15sp" />
+
+        <!-- Mô tả -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp" android:text="Mô tả (tuỳ chọn)"
+            android:textColor="#AAAAAA" android:textSize="13sp" />
+
+        <EditText
+            android:id="@+id/edtHabitDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:background="#1E1E1E"
+            android:hint="Thêm mô tả..."
+            android:inputType="textMultiLine"
+            android:lines="2"
+            android:padding="14dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#555555"
+            android:textSize="15sp" />
+
+        <!-- Track -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp" android:text="Track"
+            android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggleTrackType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:selectionRequired="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTrackTask"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp" android:layout_height="44dp"
+                android:layout_weight="1" android:text="Task" android:textSize="13sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTrackAmount"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp" android:layout_height="44dp"
+                android:layout_weight="1" android:text="Amount" android:textSize="13sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTrackTime"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp" android:layout_height="44dp"
+                android:layout_weight="1" android:text="Time" android:textSize="13sp" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <!-- Amount fields -->
+        <LinearLayout
+            android:id="@+id/layoutAmountFields"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <EditText android:id="@+id/edtTargetValue"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp" android:layout_weight="1"
+                android:background="#1E1E1E" android:hint="Số lần"
+                android:inputType="number" android:padding="12dp"
+                android:textColor="#FFFFFF" android:textColorHint="#555555" android:textSize="14sp" />
+
+            <EditText android:id="@+id/edtTargetUnit"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:background="#1E1E1E"
+                android:hint="Đơn vị" android:inputType="text" android:padding="12dp"
+                android:textColor="#FFFFFF" android:textColorHint="#555555" android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Timer fields -->
+        <LinearLayout
+            android:id="@+id/layoutTimerFields"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <EditText android:id="@+id/edtTimerMinutes"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:background="#1E1E1E"
+                android:hint="Số phút" android:inputType="number" android:padding="12dp"
+                android:textColor="#FFFFFF" android:textColorHint="#555555" android:textSize="14sp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginStart="10dp" android:text="phút"
+                android:textColor="#AAAAAA" android:textSize="14sp" />
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:layout_marginBottom="20dp" android:background="#2A2A2A" />
+
+        <!-- Repeat -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp" android:text="Repeat"
+            android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggleRepeat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:selectionRequired="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRepeatDaily"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp" android:layout_height="44dp"
+                android:layout_weight="1" android:text="Daily" android:textSize="13sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRepeatWeekly"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp" android:layout_height="44dp"
+                android:layout_weight="1" android:text="Weekly" android:textSize="13sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRepeatMonthly"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp" android:layout_height="44dp"
+                android:layout_weight="1" android:text="Monthly" android:textSize="13sp" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <!-- Ngày trong tuần (chỉ hiện khi Weekly) -->
+        <TextView
+            android:id="@+id/tvWeeklyDaysLabel"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp" android:text="On these days"
+            android:textColor="#AAAAAA" android:textSize="13sp" android:visibility="gone" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupDays"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            app:chipSpacingHorizontal="4dp"
+            app:singleLine="true">
+
+            <com.google.android.material.chip.Chip android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:checkable="true"
+                android:text="Mon" android:textSize="12sp" />
+            <com.google.android.material.chip.Chip android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:checkable="true"
+                android:text="Tue" android:textSize="12sp" />
+            <com.google.android.material.chip.Chip android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:checkable="true"
+                android:text="Wed" android:textSize="12sp" />
+            <com.google.android.material.chip.Chip android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:checkable="true"
+                android:text="Thu" android:textSize="12sp" />
+            <com.google.android.material.chip.Chip android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:checkable="true"
+                android:text="Fri" android:textSize="12sp" />
+            <com.google.android.material.chip.Chip android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:checkable="true"
+                android:text="Sat" android:textSize="12sp" />
+            <com.google.android.material.chip.Chip android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:checkable="true"
+                android:text="Sun" android:textSize="12sp" />
+        </com.google.android.material.chip.ChipGroup>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:layout_marginBottom="20dp" android:background="#2A2A2A" />
+
+        <!-- Reminder: label + switch -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingStart="20dp"
-            android:paddingTop="20dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="28dp">
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tvSheetTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Thêm thói quen"
-                android:textColor="@color/text_primary"
-                android:textSize="22sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="Thiết lập Task, Amount hoặc Time habit"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:text="Tên thói quen"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold" />
-
-            <EditText
-                android:id="@+id/edtHabitName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:backgroundTint="@color/green_primary"
-                android:hint="Ví dụ: Thiền, Uống nước, Đọc sách"
-                android:inputType="textCapSentences"
-                android:maxLines="1"
-                android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_secondary" />
-
-            <EditText
-                android:id="@+id/edtHabitDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:backgroundTint="@color/green_primary"
-                android:hint="Mô tả ngắn"
-                android:inputType="textCapSentences"
-                android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_secondary" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:text="Danh mục"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold" />
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroupCategory"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                app:singleSelection="true">
-
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="Sức khỏe" />
-
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Học tập" />
-
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Thể thao" />
-
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Khác" />
-            </com.google.android.material.chip.ChipGroup>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:text="Track"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold" />
-
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/toggleTrackType"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                app:selectionRequired="true"
-                app:singleSelection="true">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTrackTask"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_weight="1"
-                    android:text="Task"
-                    android:textAllCaps="false"
-                    android:textStyle="bold"
-                    app:backgroundTint="@color/green_primary"
-                    app:cornerRadius="16dp"
-                    app:strokeColor="@color/gray_border"
-                    app:strokeWidth="1dp"
-                    android:textColor="@android:color/white" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTrackAmount"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_weight="1"
-                    android:text="Amount"
-                    android:textAllCaps="false"
-                    android:textStyle="bold"
-                    app:backgroundTint="@color/gray_light"
-                    app:cornerRadius="16dp"
-                    app:strokeColor="@color/gray_border"
-                    app:strokeWidth="1dp"
-                    android:textColor="@color/text_primary" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTrackTime"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_weight="1"
-                    android:text="Time"
-                    android:textAllCaps="false"
-                    android:textStyle="bold"
-                    app:backgroundTint="@color/gray_light"
-                    app:cornerRadius="16dp"
-                    app:strokeColor="@color/gray_border"
-                    app:strokeWidth="1dp"
-                    android:textColor="@color/text_primary" />
-            </com.google.android.material.button.MaterialButtonToggleGroup>
-
-            <LinearLayout
-                android:id="@+id/layoutAmountFields"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Mục tiêu trong ngày"
-                    android:textColor="@color/text_primary"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Ví dụ: 8 cốc, 5 lần"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:orientation="horizontal">
-
-                    <EditText
-                        android:id="@+id/edtTargetValue"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:backgroundTint="@color/green_primary"
-                        android:hint="Mục tiêu"
-                        android:inputType="number" />
-
-                    <Space
-                        android:layout_width="12dp"
-                        android:layout_height="wrap_content" />
-
-                    <EditText
-                        android:id="@+id/edtTargetUnit"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:backgroundTint="@color/green_primary"
-                        android:hint="Đơn vị"
-                        android:inputType="textCapWords" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/layoutTimerFields"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Thời gian"
-                    android:textColor="@color/text_primary"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Nhập số phút cho habit dạng Time"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
-
-                <EditText
-                    android:id="@+id/edtTimerMinutes"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:backgroundTint="@color/green_primary"
-                    android:hint="Ví dụ: 15"
-                    android:inputType="number" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:text="Tần suất"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold" />
-
-            <Spinner
-                android:id="@+id/spinnerFrequency"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_pill_gray"
-                android:padding="10dp" />
-
-            <TextView
-                android:id="@+id/tvWeeklyDaysLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:text="Chọn ngày trong tuần"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold"
-                android:visibility="gone" />
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroupDays"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:visibility="gone"
-                app:singleLine="false">
-
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="T2" />
-
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="T3" />
-
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="T4" />
-
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="T5" />
-
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="T6" />
-
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="T7" />
-
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="CN" />
-            </com.google.android.material.chip.ChipGroup>
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="Reminder"
+                android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchReminder"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:text="Bật nhắc nhở"
-                android:textColor="@color/text_primary" />
-
-            <LinearLayout
-                android:id="@+id/layoutReminderTime"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="#F7F7F7"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="14dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Giờ nhắc nhở"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp" />
-
-                <TextView
-                    android:id="@+id/txtReminderTime"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_pill_gray"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="8dp"
-                    android:text="Chọn giờ"
-                    android:textColor="#1B5E20"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/btnSaveHabit"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:backgroundTint="#4CAF50"
-                android:paddingVertical="14dp"
-                android:text="Lưu thói quen"
-                android:textAllCaps="false"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
         </LinearLayout>
-    </ScrollView>
-</com.google.android.material.card.MaterialCardView>
+
+        <!--
+            layoutReminderTime: chỉ hiện khi switch bật.
+            Chứa label + txtReminderTime (TextView bấm vào để chọn giờ).
+            txtReminderTime chỉ khai báo 1 lần duy nhất ở đây.
+        -->
+        <LinearLayout
+            android:id="@+id/layoutReminderTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp" android:text="Giờ nhắc:"
+                android:textColor="#AAAAAA" android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/txtReminderTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#1E6F3A"
+                android:padding="10dp"
+                android:text="10:00"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Nút Lưu -->
+        <Button
+            android:id="@+id/btnSaveHabit"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="#4CAF50"
+            android:text="Lưu"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</ScrollView>

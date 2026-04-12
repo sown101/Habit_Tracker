@@ -1,12 +1,15 @@
 package com.example.habittracker.ui.home;
 
 import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
+import android.widget.GridLayout;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,9 +22,10 @@ import com.example.habittracker.R;
 import com.example.habittracker.data.db.AppDatabase;
 import com.example.habittracker.data.model.Habit;
 import com.example.habittracker.data.model.HabitLog;
-import com.example.habittracker.utils.Constants;
+import com.example.habittracker.utils.DailyCompletionUtils;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -32,13 +36,21 @@ public class HabitDetailDialogFragment extends DialogFragment {
     private Habit habit;
     private AppDatabase db;
 
+    // Views thông tin habit
     private TextView tvName;
-    private TextView tvCategory;
-    private TextView tvTarget;
+    private TextView tvIconEmoji;
+    private View viewIconBg;
     private TextView tvFrequency;
     private TextView tvReminder;
-    private TextView tvTodayStatus;
-    private CheckBox cbDetailComplete;
+
+    // Views thống kê streak riêng
+    private TextView tvCurrentStreak;
+    private TextView tvLongestStreak;
+    private TextView tvTotalCompleted;
+
+    // Calendar heatmap (lưới các ô màu theo ngày)
+    private GridLayout gridHeatmap;
+
     private Button btnClose;
 
     public static HabitDetailDialogFragment newInstance(Habit habit) {
@@ -57,56 +69,49 @@ public class HabitDetailDialogFragment extends DialogFragment {
         db = AppDatabase.getInstance(requireContext());
 
         tvName = view.findViewById(R.id.tvDetailName);
-        tvCategory = view.findViewById(R.id.tvDetailCategory);
-        tvTarget = view.findViewById(R.id.tvDetailTarget);
+        tvIconEmoji = view.findViewById(R.id.tvDetailIcon);
+        viewIconBg = view.findViewById(R.id.viewDetailIconBg);
         tvFrequency = view.findViewById(R.id.tvDetailFrequency);
         tvReminder = view.findViewById(R.id.tvDetailReminder);
-        tvTodayStatus = view.findViewById(R.id.tvTodayStatus);
-        cbDetailComplete = view.findViewById(R.id.cbDetailComplete);
+        tvCurrentStreak = view.findViewById(R.id.tvDetailCurrentStreak);
+        tvLongestStreak = view.findViewById(R.id.tvDetailLongestStreak);
+        tvTotalCompleted = view.findViewById(R.id.tvDetailTotalCompleted);
+        gridHeatmap = view.findViewById(R.id.gridHeatmap);
         btnClose = view.findViewById(R.id.btnDetailClose);
 
-        android.widget.ImageButton btnEditHabit = view.findViewById(R.id.btnEditHabit);
-        android.widget.ImageButton btnDeleteHabit = view.findViewById(R.id.btnDeleteHabit);
+        ImageButton btnEditHabit = view.findViewById(R.id.btnEditHabit);
+        ImageButton btnDeleteHabit = view.findViewById(R.id.btnDeleteHabit);
 
         if (getArguments() != null) {
             habit = (Habit) getArguments().getSerializable(ARG_HABIT);
         }
 
-        bindStaticHabitInfo();
-        loadTodayLogAndBind();
+        bindStaticInfo();
+        loadStats();
 
-        cbDetailComplete.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (!buttonView.isPressed()) {
-                return;
-            }
-            updateTodayCompletion(isChecked);
-        });
-
+        // Nút edit: mở form chỉnh sửa
         btnEditHabit.setOnClickListener(v -> {
             if (habit == null) return;
-
             dismiss();
-
-            AddHabit editBottomSheet = new AddHabit();
+            AddHabit editSheet = new AddHabit();
             Bundle bundle = new Bundle();
             bundle.putSerializable("EDIT_HABIT", habit);
-            editBottomSheet.setArguments(bundle);
-            editBottomSheet.show(requireActivity().getSupportFragmentManager(), "EditHabit");
+            editSheet.setArguments(bundle);
+            editSheet.show(requireActivity().getSupportFragmentManager(), "EditHabit");
         });
 
+        // Nút xóa: hỏi xác nhận rồi xóa
         btnDeleteHabit.setOnClickListener(v -> {
             if (habit == null) return;
-
             new AlertDialog.Builder(requireContext())
                     .setTitle("Xóa thói quen")
-                    .setMessage("Bạn có chắc chắn muốn xóa thói quen '" + habit.getTitle() + "' không? Dữ liệu không thể khôi phục.")
-                    .setPositiveButton("Xóa", (dialogInterface, i) -> {
+                    .setMessage("Bạn có chắc muốn xóa '" + habit.getTitle() + "' không?")
+                    .setPositiveButton("Xóa", (d, i) -> {
                         new Thread(() -> {
                             db.habitDao().delete(habit);
-
                             if (getActivity() != null) {
                                 getActivity().runOnUiThread(() -> {
-                                    Toast.makeText(getContext(), "Đã xóa thói quen", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "Đã xóa", Toast.LENGTH_SHORT).show();
                                     getParentFragmentManager().setFragmentResult("refresh_habits", new Bundle());
                                     dismiss();
                                 });
@@ -131,137 +136,115 @@ public class HabitDetailDialogFragment extends DialogFragment {
         return dialog;
     }
 
-    private void bindStaticHabitInfo() {
-        if (habit == null) {
-            return;
-        }
+    // Hiển thị thông tin cơ bản của habit (không cần load từ DB)
+    private void bindStaticInfo() {
+        if (habit == null) return;
 
-        tvName.setText(safeText(habit.getTitle(), "Không có tên"));
-        tvCategory.setText(safeText(habit.getCategory(), "Chưa phân loại"));
+        tvName.setText(habit.getTitle());
+        tvIconEmoji.setText(habit.getIconEmoji());
 
-        String unit = safeText(habit.getUnit(), "");
-        String targetText = "🎯 Mục tiêu: " + habit.getTargetValue();
-        if (!unit.isEmpty()) {
-            targetText += " " + unit;
-        }
-        tvTarget.setText(targetText);
+        // Set màu nền tròn cho icon
+        try {
+            GradientDrawable bg = new GradientDrawable();
+            bg.setShape(GradientDrawable.OVAL);
+            bg.setColor(Color.parseColor(habit.getColor()));
+            viewIconBg.setBackground(bg);
+        } catch (Exception ignored) {}
 
-        tvFrequency.setText("🔄 Tần suất: " + safeText(habit.getFrequency(), "Chưa có"));
+        tvFrequency.setText("🔄 " + habit.getFrequency());
 
-        if (habit.isReminderEnabled()
-                && habit.getReminderTime() != null
-                && !habit.getReminderTime().trim().isEmpty()) {
-            tvReminder.setText("⏰ Nhắc nhở: " + habit.getReminderTime());
+        if (habit.isReminderEnabled() && !TextUtils.isEmpty(habit.getReminderTime())) {
+            tvReminder.setText("⏰ " + habit.getReminderTime());
         } else {
-            tvReminder.setText("⏰ Nhắc nhở: Không bật");
+            tvReminder.setText("⏰ Không bật nhắc nhở");
         }
     }
 
-    private void loadTodayLogAndBind() {
-        if (habit == null) {
-            return;
-        }
+    // Load thống kê streak riêng và vẽ heatmap (chạy trên background thread)
+    private void loadStats() {
+        if (habit == null) return;
 
         new Thread(() -> {
-            String today = getTodayDate();
-            HabitLog todayLog = db.habitLogDao().getLogByHabitAndDate(habit.getId(), today);
+            // Tính streak riêng của habit này
+            int currentStreak = DailyCompletionUtils.calculateHabitCurrentStreak(db, habit.getId());
+            int longestStreak = DailyCompletionUtils.calculateHabitLongestStreak(db, habit.getId(), 90);
+            int totalCompleted = DailyCompletionUtils.calculateHabitTotalCompleted(db, habit.getId());
 
-            boolean completed = todayLog != null && todayLog.isCompleted();
-            int currentValue = todayLog != null ? todayLog.getCurrentValue() : 0;
-            int targetValue = habit.getTargetValue();
+            // Lấy dữ liệu cho heatmap: 56 ngày gần nhất (8 tuần)
+            boolean[] completedDays = new boolean[56];
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DAY_OF_YEAR, -55); // Bắt đầu từ 55 ngày trước
 
-            habit.setCompletedToday(completed);
-
-            String statusText = completed
-                    ? "Trạng thái hôm nay: Đã hoàn thành"
-                    : "Trạng thái hôm nay: Chưa hoàn thành";
-
-            String progressText = statusText + " (" + currentValue + "/" + targetValue + ")";
+            for (int i = 0; i < 56; i++) {
+                String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        .format(calendar.getTime());
+                HabitLog log = db.habitLogDao().getLogByHabitAndDate(habit.getId(), date);
+                completedDays[i] = (log != null && log.isCompleted());
+                calendar.add(Calendar.DAY_OF_YEAR, 1);
+            }
 
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
-                    cbDetailComplete.setOnCheckedChangeListener(null);
-                    cbDetailComplete.setChecked(completed);
-                    cbDetailComplete.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                        if (!buttonView.isPressed()) {
-                            return;
-                        }
-                        updateTodayCompletion(isChecked);
-                    });
-
-                    tvTodayStatus.setText(progressText);
+                    tvCurrentStreak.setText(currentStreak + " ngày");
+                    tvLongestStreak.setText(longestStreak + " ngày");
+                    tvTotalCompleted.setText(String.valueOf(totalCompleted));
+                    drawHeatmap(completedDays);
                 });
             }
         }).start();
     }
 
-    private void updateTodayCompletion(boolean isChecked) {
-        if (habit == null) {
-            return;
-        }
+    /**
+     * Vẽ heatmap: lưới 8 tuần x 7 ngày.
+     * Ô xanh = đã hoàn thành, ô xám = chưa hoàn thành.
+     */
+    private void drawHeatmap(boolean[] completedDays) {
+        if (gridHeatmap == null) return;
 
-        new Thread(() -> {
-            String today = getTodayDate();
-            String now = getCurrentDateTime();
+        gridHeatmap.removeAllViews();
+        gridHeatmap.setColumnCount(8);  // 8 cột (8 tuần)
+        gridHeatmap.setRowCount(7);     // 7 hàng (7 ngày trong tuần)
 
-            HabitLog existingLog = db.habitLogDao().getLogByHabitAndDate(habit.getId(), today);
+        // Dữ liệu completedDays: index 0 = 55 ngày trước, index 55 = hôm nay
+        // Sắp xếp theo cột (tuần) từ trái sang phải, hàng (ngày) từ trên xuống
 
-            if (existingLog == null) {
-                HabitLog newLog = new HabitLog(
-                        habit.getId(),
-                        today,
-                        isChecked ? habit.getTargetValue() : 0,
-                        habit.getTargetValue(),
-                        isChecked,
-                        isChecked ? now : null,
-                        null,
-                        Constants.COMPLETION_METHOD_MANUAL
-                );
-                db.habitLogDao().insert(newLog);
-            } else {
-                existingLog.setCurrentValue(isChecked ? habit.getTargetValue() : 0);
-                existingLog.setTargetValue(habit.getTargetValue());
-                existingLog.setCompleted(isChecked);
-                existingLog.setCompletedAt(isChecked ? now : null);
+        String habitColor = (habit != null) ? habit.getColor() : "#4CAF50";
 
-                if (TextUtils.isEmpty(existingLog.getCompletionMethod()) || isChecked) {
-                    existingLog.setCompletionMethod(Constants.COMPLETION_METHOD_MANUAL);
+        for (int week = 0; week < 8; week++) {
+            for (int day = 0; day < 7; day++) {
+                int index = week * 7 + day;
+
+                View cell = new View(requireContext());
+                int cellSize = (int) (16 * requireContext().getResources().getDisplayMetrics().density);
+                int cellMargin = (int) (2 * requireContext().getResources().getDisplayMetrics().density);
+
+                GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+                params.width = cellSize;
+                params.height = cellSize;
+                params.setMargins(cellMargin, cellMargin, cellMargin, cellMargin);
+                params.rowSpec = GridLayout.spec(day);
+                params.columnSpec = GridLayout.spec(week);
+                cell.setLayoutParams(params);
+
+                GradientDrawable drawable = new GradientDrawable();
+                drawable.setShape(GradientDrawable.RECTANGLE);
+                drawable.setCornerRadius(3);
+
+                if (index < completedDays.length && completedDays[index]) {
+                    // Ô đã hoàn thành: dùng màu của habit
+                    drawable.setColor(Color.parseColor(habitColor));
+                } else {
+                    // Ô chưa hoàn thành: màu xám tối
+                    drawable.setColor(Color.parseColor("#2A2A2A"));
                 }
 
-                db.habitLogDao().update(existingLog);
+                cell.setBackground(drawable);
+                gridHeatmap.addView(cell);
             }
-
-            habit.setCompletedToday(isChecked);
-
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    String message = isChecked
-                            ? "Đã đánh dấu hoàn thành hôm nay"
-                            : "Đã bỏ đánh dấu hoàn thành hôm nay";
-
-                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
-                    getParentFragmentManager().setFragmentResult("refresh_habits", new Bundle());
-
-                    String status = isChecked
-                            ? "Trạng thái hôm nay: Đã hoàn thành"
-                            : "Trạng thái hôm nay: Chưa hoàn thành";
-
-                    tvTodayStatus.setText(status + " (" +
-                            (isChecked ? habit.getTargetValue() : 0) + "/" + habit.getTargetValue() + ")");
-                });
-            }
-        }).start();
-    }
-
-    private String safeText(String value, String fallback) {
-        return value == null || value.trim().isEmpty() ? fallback : value;
+        }
     }
 
     private String getTodayDate() {
         return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-    }
-
-    private String getCurrentDateTime() {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
     }
 }

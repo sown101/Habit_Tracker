@@ -21,6 +21,7 @@ import com.example.habittracker.data.model.HabitLog;
 import com.example.habittracker.ui.adapter.HabitAdapter;
 import com.example.habittracker.ui.timer.TimerHabitDialogFragment;
 import com.example.habittracker.utils.Constants;
+import com.example.habittracker.utils.DailyCompletionUtils;
 import com.example.habittracker.utils.SessionManager;
 
 import java.text.SimpleDateFormat;
@@ -33,7 +34,10 @@ public class HomeFragment extends Fragment {
     private RecyclerView rvHabits;
     private HabitAdapter adapter;
     private AppDatabase db;
+
     private TextView txtProgressRatio;
+    private TextView tvStreakCount;
+    private TextView txtGreeting;
 
     public HomeFragment() {
     }
@@ -47,9 +51,17 @@ public class HomeFragment extends Fragment {
 
         rvHabits = view.findViewById(R.id.rvHabits);
         txtProgressRatio = view.findViewById(R.id.txtProgressRatio);
+        tvStreakCount = view.findViewById(R.id.tvStreakCount);
+        txtGreeting = view.findViewById(R.id.txtGreeting);
+
+        String userName = SessionManager.getUserName(requireContext());
+        if (userName != null && !userName.equals("Local User") && !userName.isEmpty()) {
+            txtGreeting.setText("Hello,\n" + userName + "!");
+        }
+
+        db = AppDatabase.getInstance(requireContext());
 
         rvHabits.setLayoutManager(new LinearLayoutManager(requireContext()));
-        db = AppDatabase.getInstance(requireContext());
 
         adapter = new HabitAdapter(
                 null,
@@ -57,7 +69,7 @@ public class HomeFragment extends Fragment {
                 new HabitAdapter.OnCounterActionListener() {
                     @Override
                     public void onCounterPlus(Habit habit, int position) {
-                        updateCounterHabit(habit, position, +1);
+                        updateCounterHabit(habit, position, 1);
                     }
 
                     @Override
@@ -80,22 +92,30 @@ public class HomeFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadHabitsFromDatabase();
+    }
+
     private void openTimerHabit(Habit habit) {
         if (habit == null || !habit.isTimerHabit()) {
             return;
         }
 
-        TimerHabitDialogFragment dialog = TimerHabitDialogFragment.newInstance(habit.getId());
+        TimerHabitDialogFragment dialog =
+                TimerHabitDialogFragment.newInstance(habit.getId());
         dialog.show(getParentFragmentManager(), "timer_habit_dialog");
     }
 
     private void loadHabitsFromDatabase() {
-        int userId = SessionManager.getUserId(requireContext());
+        if (!isAdded()) {
+            return;
+        }
 
+        int userId = SessionManager.getUserId(requireContext());
         if (userId == -1) {
-            if (isAdded()) {
-                Toast.makeText(requireContext(), "Không tìm thấy phiên đăng nhập", Toast.LENGTH_SHORT).show();
-            }
+            Toast.makeText(requireContext(), "Không tìm thấy phiên đăng nhập", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -109,10 +129,12 @@ public class HomeFragment extends Fragment {
                 HabitLog todayLog = db.habitLogDao().getLogByHabitAndDate(habit.getId(), today);
 
                 int currentValue = todayLog != null ? todayLog.getCurrentValue() : 0;
-                boolean completedToday;
 
-                if (habit.isCounterHabit() || habit.isTimerHabit()) {
+                boolean completedToday;
+                if (habit.isCounterHabit()) {
                     completedToday = currentValue >= habit.getSafeTargetValue();
+                } else if (habit.isTimerHabit()) {
+                    completedToday = todayLog != null && todayLog.isCompleted();
                 } else {
                     completedToday = todayLog != null && todayLog.isCompleted();
                 }
@@ -120,17 +142,23 @@ public class HomeFragment extends Fragment {
                 habit.setCurrentValueToday(currentValue);
                 habit.setCompletedToday(completedToday);
 
+                int habitStreak = DailyCompletionUtils.calculateHabitCurrentStreak(db, habit.getId());
+                habit.setCurrentStreak(habitStreak);
+
                 if (completedToday) {
                     completedCount++;
                 }
             }
 
+            int totalStreak = DailyCompletionUtils.calculateCurrentDayStreak(db, userId);
             int finalCompletedCount = completedCount;
+            int finalTotalStreak = totalStreak;
 
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     adapter.updateData(habits);
                     updateProgressText(finalCompletedCount, habits.size());
+                    tvStreakCount.setText(String.valueOf(finalTotalStreak));
                 });
             }
         }).start();
@@ -144,11 +172,11 @@ public class HomeFragment extends Fragment {
         new Thread(() -> {
             String today = getTodayDate();
             String now = getCurrentDateTime();
+
             HabitLog existingLog = db.habitLogDao().getLogByHabitAndDate(habit.getId(), today);
 
             int targetValue = habit.getSafeTargetValue();
             int newCurrentValue = isChecked ? targetValue : 0;
-            boolean newCompletedState = isChecked;
 
             if (existingLog == null) {
                 HabitLog newLog = new HabitLog(
@@ -156,7 +184,7 @@ public class HomeFragment extends Fragment {
                         today,
                         newCurrentValue,
                         targetValue,
-                        newCompletedState,
+                        isChecked,
                         isChecked ? now : null,
                         null,
                         Constants.COMPLETION_METHOD_MANUAL
@@ -165,13 +193,9 @@ public class HomeFragment extends Fragment {
             } else {
                 existingLog.setCurrentValue(newCurrentValue);
                 existingLog.setTargetValue(targetValue);
-                existingLog.setCompleted(newCompletedState);
+                existingLog.setCompleted(isChecked);
                 existingLog.setCompletedAt(isChecked ? now : null);
-
-                if (TextUtils.isEmpty(existingLog.getCompletionMethod()) || isChecked) {
-                    existingLog.setCompletionMethod(Constants.COMPLETION_METHOD_MANUAL);
-                }
-
+                existingLog.setCompletionMethod(Constants.COMPLETION_METHOD_MANUAL);
                 db.habitLogDao().update(existingLog);
             }
 
@@ -180,7 +204,7 @@ public class HomeFragment extends Fragment {
                     loadHabitsFromDatabase();
                     Toast.makeText(
                             requireContext(),
-                            isChecked ? "Đã đánh dấu hoàn thành" : "Đã bỏ đánh dấu hoàn thành",
+                            isChecked ? "Đã đánh dấu hoàn thành" : "Đã bỏ đánh dấu",
                             Toast.LENGTH_SHORT
                     ).show();
                 });
@@ -221,21 +245,16 @@ public class HomeFragment extends Fragment {
                 existingLog.setTargetValue(targetValue);
                 existingLog.setCompleted(isCompleted);
                 existingLog.setCompletedAt(isCompleted ? now : null);
-
-                if (TextUtils.isEmpty(existingLog.getCompletionMethod()) || delta > 0) {
-                    existingLog.setCompletionMethod(Constants.COMPLETION_METHOD_MANUAL);
-                }
-
+                existingLog.setCompletionMethod(Constants.COMPLETION_METHOD_MANUAL);
                 db.habitLogDao().update(existingLog);
             }
 
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     loadHabitsFromDatabase();
-
-                    String unit = habit.getDisplayUnit();
-                    String actionText = delta > 0 ? "+1 " + unit : "-1 " + unit;
-
+                    String actionText = delta > 0
+                            ? "+1 " + habit.getDisplayUnit()
+                            : "-1 " + habit.getDisplayUnit();
                     Toast.makeText(requireContext(), actionText, Toast.LENGTH_SHORT).show();
                 });
             }
@@ -243,15 +262,10 @@ public class HomeFragment extends Fragment {
     }
 
     private void updateProgressText(int completedCount, int totalCount) {
-        if (txtProgressRatio == null) {
-            return;
-        }
-
         if (totalCount <= 0) {
             txtProgressRatio.setText("Hôm nay chưa có thói quen nào");
             return;
         }
-
         txtProgressRatio.setText(completedCount + " trên " + totalCount + " đã hoàn thành");
     }
 
@@ -261,11 +275,5 @@ public class HomeFragment extends Fragment {
 
     private String getCurrentDateTime() {
         return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        loadHabitsFromDatabase();
     }
 }

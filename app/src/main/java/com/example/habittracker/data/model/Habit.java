@@ -29,6 +29,14 @@ public class Habit implements Serializable {
     private String description;
     private String category;
 
+    // icon dạng emoji, ví dụ "💪", "📚", "🏃"
+    @ColumnInfo(name = "icon_emoji")
+    private String iconEmoji;
+
+    // màu nền của icon, dạng hex string ví dụ "#4CAF50"
+    @ColumnInfo(name = "color")
+    private String color;
+
     @ColumnInfo(name = "habit_type")
     private String habitType;
 
@@ -55,16 +63,22 @@ public class Habit implements Serializable {
     @ColumnInfo(name = "updated_at")
     private String updatedAt;
 
+    // Các field tạm thời (không lưu vào DB), dùng để hiển thị UI
     @Ignore
     private boolean isCompletedToday;
 
     @Ignore
     private int currentValueToday;
 
+    @Ignore
+    private int currentStreak; // streak riêng của từng habit
+
     public Habit(int userId,
                  @NonNull String title,
                  String description,
                  String category,
+                 String iconEmoji,
+                 String color,
                  String habitType,
                  int targetValue,
                  String unit,
@@ -78,6 +92,8 @@ public class Habit implements Serializable {
         this.title = title;
         this.description = description;
         this.category = category;
+        this.iconEmoji = iconEmoji;
+        this.color = color;
         this.habitType = habitType;
         this.targetValue = targetValue;
         this.unit = unit;
@@ -89,138 +105,77 @@ public class Habit implements Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public int getId() {
-        return id;
-    }
+    // --- Getters & Setters ---
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
+    public int getUserId() { return userId; }
+    public void setUserId(int userId) { this.userId = userId; }
 
     @NonNull
-    public String getTitle() {
-        return title;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(@NonNull String title) { this.title = title; }
 
-    public void setTitle(@NonNull String title) {
-        this.title = title;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public String getDescription() {
-        return description;
-    }
+    public String getCategory() { return category == null ? "" : category; }
+    public void setCategory(String category) { this.category = category; }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public String getIconEmoji() {
+        return iconEmoji == null || iconEmoji.isEmpty() ? "⭐" : iconEmoji;
     }
+    public void setIconEmoji(String iconEmoji) { this.iconEmoji = iconEmoji; }
 
-    public String getCategory() {
-        return category == null ? "" : category;
+    public String getColor() {
+        return color == null || color.isEmpty() ? "#4CAF50" : color;
     }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
+    public void setColor(String color) { this.color = color; }
 
     public String getHabitType() {
         return habitType == null ? Constants.HABIT_TYPE_CHECKBOX : habitType;
     }
+    public void setHabitType(String habitType) { this.habitType = habitType; }
 
-    public void setHabitType(String habitType) {
-        this.habitType = habitType;
-    }
+    public int getTargetValue() { return targetValue; }
+    public void setTargetValue(int targetValue) { this.targetValue = targetValue; }
 
-    public int getTargetValue() {
-        return targetValue;
-    }
-
-    public void setTargetValue(int targetValue) {
-        this.targetValue = targetValue;
-    }
-
-    public String getUnit() {
-        return unit == null ? "" : unit;
-    }
-
-    public void setUnit(String unit) {
-        this.unit = unit;
-    }
+    public String getUnit() { return unit == null ? "" : unit; }
+    public void setUnit(String unit) { this.unit = unit; }
 
     public String getFrequencyType() {
         return frequencyType == null ? Constants.FREQUENCY_DAILY : frequencyType;
     }
+    public void setFrequencyType(String frequencyType) { this.frequencyType = frequencyType; }
 
-    public void setFrequencyType(String frequencyType) {
-        this.frequencyType = frequencyType;
-    }
+    public boolean isReminderEnabled() { return reminderEnabled; }
+    public void setReminderEnabled(boolean reminderEnabled) { this.reminderEnabled = reminderEnabled; }
 
-    public boolean isReminderEnabled() {
-        return reminderEnabled;
-    }
+    public String getReminderTime() { return reminderTime == null ? "" : reminderTime; }
+    public void setReminderTime(String reminderTime) { this.reminderTime = reminderTime; }
 
-    public void setReminderEnabled(boolean reminderEnabled) {
-        this.reminderEnabled = reminderEnabled;
-    }
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean active) { isActive = active; }
 
-    public String getReminderTime() {
-        return reminderTime == null ? "" : reminderTime;
-    }
+    public String getCreatedAt() { return createdAt == null ? "" : createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 
-    public void setReminderTime(String reminderTime) {
-        this.reminderTime = reminderTime;
-    }
+    public String getUpdatedAt() { return updatedAt == null ? "" : updatedAt; }
+    public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
 
-    public boolean isActive() {
-        return isActive;
-    }
+    public boolean isCompletedToday() { return isCompletedToday; }
+    public void setCompletedToday(boolean completedToday) { isCompletedToday = completedToday; }
 
-    public void setActive(boolean active) {
-        isActive = active;
-    }
+    public int getCurrentValueToday() { return currentValueToday; }
+    public void setCurrentValueToday(int currentValueToday) { this.currentValueToday = currentValueToday; }
 
-    public String getCreatedAt() {
-        return createdAt == null ? "" : createdAt;
-    }
+    public int getCurrentStreak() { return currentStreak; }
+    public void setCurrentStreak(int currentStreak) { this.currentStreak = currentStreak; }
 
-    public void setCreatedAt(String createdAt) {
-        this.createdAt = createdAt;
-    }
+    // --- Helper methods ---
 
-    public String getUpdatedAt() {
-        return updatedAt == null ? "" : updatedAt;
-    }
-
-    public void setUpdatedAt(String updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public boolean isCompletedToday() {
-        return isCompletedToday;
-    }
-
-    public void setCompletedToday(boolean completedToday) {
-        isCompletedToday = completedToday;
-    }
-
-    public int getCurrentValueToday() {
-        return currentValueToday;
-    }
-
-    public void setCurrentValueToday(int currentValueToday) {
-        this.currentValueToday = currentValueToday;
-    }
-
-    public String getFrequency() {
-        return getFrequencyType();
-    }
+    public String getFrequency() { return getFrequencyType(); }
 
     public boolean isTaskHabit() {
         return Constants.HABIT_TYPE_CHECKBOX.equalsIgnoreCase(getHabitType());
@@ -239,23 +194,9 @@ public class Habit implements Serializable {
     }
 
     public String getDisplayUnit() {
-        if (isTaskHabit()) {
-            return "lần";
-        }
-
-        if (isTimerHabit()) {
-            return "phút";
-        }
-
+        if (isTaskHabit()) return "lần";
+        if (isTimerHabit()) return "phút";
         String rawUnit = getUnit().trim();
         return rawUnit.isEmpty() ? "lần" : rawUnit;
-    }
-
-    public String getDisplayProgressText() {
-        if (isTaskHabit()) {
-            return isCompletedToday ? "Hoàn thành" : "Chưa hoàn thành";
-        }
-
-        return currentValueToday + "/" + getSafeTargetValue() + " " + getDisplayUnit();
     }
 }

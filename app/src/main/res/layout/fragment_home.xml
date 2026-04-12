@@ -4,90 +4,104 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_main">
+    android:background="#F8F9FA">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="80dp">
+        android:paddingBottom="100dp">
 
+        <!-- Top bar -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/layoutTopNav"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#F2F2F2"
-            android:paddingVertical="12dp"
+            android:background="#F8F9FA"
+            android:paddingVertical="14dp"
+            android:paddingHorizontal="20dp"
             app:layout_constraintTop_toTopOf="parent">
 
-            <ImageView
-                android:id="@+id/imgAvatar"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="20dp"
-                android:background="@drawable/outline_account_circle_24"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <LinearLayout
+            <!-- Streak tổng (dynamic) -->
+            <androidx.cardview.widget.CardView
                 android:id="@+id/layoutStreak"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:background="@android:color/white"
-                android:gravity="center"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="8dp"
+                android:layout_marginEnd="10dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/imgNotification"
                 app:layout_constraintTop_toTopOf="parent">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🔥 1"
-                    android:textSize="30dp"
-                    android:textColor="@color/orange_flame"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="8dp">
 
-            <ImageView
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔥"
+                        android:textSize="22sp" />
+
+                    <TextView
+                        android:id="@+id/tvStreakCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="0"
+                        android:textColor="#FF6B00"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:id="@+id/imgNotification"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginEnd="20dp"
-                android:background="@android:color/white"
-                android:padding="12dp"
-                android:src="@drawable/ic_launcher_foreground"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="4dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:tint="@color/text_primary" />
+                app:layout_constraintTop_toTopOf="parent">
 
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_launcher_foreground"
+                    app:tint="#757575" />
+            </androidx.cardview.widget.CardView>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-
+        <!-- Greeting - tên người dùng động -->
         <TextView
             android:id="@+id/txtGreeting"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:fontFamily="sans-serif-black"
             android:text="Hello,\nRonaldo!"
-            android:textColor="@color/text_primary"
+            android:textColor="#1A1A1A"
             android:textSize="28sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/layoutTopNav" />
 
-
+        <!-- Card tiến độ -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardProgress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="24dp"
-            app:cardBackgroundColor="@color/bg_progress_card"
+            android:layout_marginTop="20dp"
+            app:cardBackgroundColor="#DCE7A8"
             app:cardCornerRadius="24dp"
             app:cardElevation="0dp"
             app:layout_constraintTop_toBottomOf="@+id/txtGreeting">
@@ -97,13 +111,15 @@
                 android:layout_height="wrap_content"
                 android:padding="20dp">
 
+
+
                 <TextView
                     android:id="@+id/txtProgressTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
                     android:text="Tiến độ\nhôm nay"
-                    android:textColor="@color/text_primary"
+                    android:textColor="#1A1A1A"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
@@ -114,40 +130,39 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="1 trên 4 đã hoàn thành"
-                    android:textColor="@color/text_secondary"
+                    android:text="0 trên 0 đã hoàn thành"
+                    android:textColor="#555555"
                     android:textSize="14sp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/txtProgressTitle" />
 
                 <View
                     android:layout_width="1dp"
-                    android:layout_height="100dp"
+                    android:layout_height="90dp"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"/>
-
+                    app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <ImageView
             android:id="@+id/imgProgressIllustration"
             android:layout_width="wrap_content"
-            android:layout_height="250dp"
+            android:layout_height="220dp"
             android:adjustViewBounds="true"
             android:src="@drawable/img_weightlifter"
             app:layout_constraintBottom_toBottomOf="@+id/cardProgress"
             app:layout_constraintEnd_toEndOf="@+id/cardProgress" />
 
-
+        <!-- List title -->
         <TextView
             android:id="@+id/txtListTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="28dp"
             android:fontFamily="sans-serif-medium"
             android:text="Tổng quan hằng ngày"
-            android:textColor="@color/text_primary"
+            android:textColor="#1A1A1A"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
@@ -157,7 +172,7 @@
             android:id="@+id/rvHabits"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:clipToPadding="false"
             android:nestedScrollingEnabled="false"
             app:layout_constraintTop_toBottomOf="@+id/txtListTitle"
