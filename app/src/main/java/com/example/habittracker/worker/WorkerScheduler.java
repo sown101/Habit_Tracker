@@ -7,6 +7,8 @@ import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import com.example.habittracker.utils.SettingsManager;
+
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
@@ -24,7 +26,15 @@ public class WorkerScheduler {
     }
 
     public static void scheduleSummaryWorker(@NonNull Context context) {
-        long initialDelay = calculateInitialDelay(21, 0);
+        if (!SettingsManager.isNotificationEnabled(context)) {
+            cancelSummaryWorker(context);
+            return;
+        }
+
+        int summaryHour = SettingsManager.getDailySummaryHour(context);
+        int summaryMinute = SettingsManager.getDailySummaryMinute(context);
+
+        long initialDelay = calculateInitialDelay(summaryHour, summaryMinute);
 
         PeriodicWorkRequest summaryRequest =
                 new PeriodicWorkRequest.Builder(SummaryWorker.class, 24, TimeUnit.HOURS)
@@ -36,6 +46,10 @@ public class WorkerScheduler {
                 ExistingPeriodicWorkPolicy.UPDATE,
                 summaryRequest
         );
+    }
+
+    public static void cancelSummaryWorker(@NonNull Context context) {
+        WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_SUMMARY_WORK);
     }
 
     public static void scheduleDailyResetWorker(@NonNull Context context) {
@@ -51,6 +65,10 @@ public class WorkerScheduler {
                 ExistingPeriodicWorkPolicy.UPDATE,
                 resetRequest
         );
+    }
+
+    public static void cancelDailyResetWorker(@NonNull Context context) {
+        WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_RESET_WORK);
     }
 
     private static long calculateInitialDelay(int targetHour, int targetMinute) {

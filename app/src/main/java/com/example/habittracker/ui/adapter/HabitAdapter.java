@@ -24,7 +24,7 @@ import com.example.habittracker.utils.Constants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
+import com.example.habittracker.utils.FeedbackUtils;
 public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHolder> {
 
     public interface OnHabitCheckedChangeListener {
@@ -182,6 +182,13 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
                 int position = getBindingAdapterPosition();
                 if (position == RecyclerView.NO_POSITION) return;
 
+                Context context = v.getContext();
+                if (!habit.isCompletedToday()) {
+                    FeedbackUtils.performCompleteFeedback(context);
+                } else {
+                    FeedbackUtils.performResetFeedback(context);
+                }
+
                 if (checkedChangeListener != null) {
                     checkedChangeListener.onHabitCheckedChanged(
                             habit,
@@ -224,10 +231,21 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
                 int position = getBindingAdapterPosition();
                 if (position == RecyclerView.NO_POSITION) return;
 
+                Context context = v.getContext();
+
                 if (counterActionListener != null) {
                     if (reachedTarget) {
+                        FeedbackUtils.performResetFeedback(context);
                         counterActionListener.onCounterMinus(habit, position);
                     } else {
+                        int nextValue = Math.min(habit.getSafeTargetValue(), habit.getCurrentValueToday() + 1);
+
+                        if (nextValue >= habit.getSafeTargetValue()) {
+                            FeedbackUtils.performCompleteFeedback(context);
+                        } else {
+                            FeedbackUtils.performPlusFeedback(context);
+                        }
+
                         counterActionListener.onCounterPlus(habit, position);
                     }
                 }

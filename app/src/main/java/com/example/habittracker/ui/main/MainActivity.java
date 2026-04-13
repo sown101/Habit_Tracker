@@ -1,6 +1,7 @@
 package com.example.habittracker.ui.main;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ import com.example.habittracker.ui.home.AddHabit;
 import com.example.habittracker.ui.home.HomeFragment;
 import com.example.habittracker.ui.settings.SettingsFragment;
 import com.example.habittracker.ui.stats.StatsFragment;
+import com.example.habittracker.utils.Constants;
 import com.example.habittracker.worker.WorkerScheduler;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -49,12 +51,15 @@ public class MainActivity extends AppCompatActivity {
         navAdd = findViewById(R.id.nav_add);
 
         if (savedInstanceState == null) {
-            openHomeFragment();
+            boolean showSummaryPopup = getIntent().getBooleanExtra(
+                    Constants.EXTRA_OPEN_DAILY_SUMMARY_POPUP, false
+            );
+            openHomeFragment(showSummaryPopup);
             setSelectedNav(navHome);
         }
 
         navHome.setOnClickListener(v -> {
-            openHomeFragment();
+            openHomeFragment(false);
             setSelectedNav(navHome);
         });
 
@@ -77,6 +82,21 @@ public class MainActivity extends AppCompatActivity {
             AddHabit bottomSheet = new AddHabit();
             bottomSheet.show(getSupportFragmentManager(), "AddHabitBottomSheet");
         });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+
+        boolean showSummaryPopup = intent.getBooleanExtra(
+                Constants.EXTRA_OPEN_DAILY_SUMMARY_POPUP, false
+        );
+
+        if (showSummaryPopup) {
+            openHomeFragment(true);
+            setSelectedNav(navHome);
+        }
     }
 
     private void setSelectedNav(LinearLayout selectedNav) {
@@ -104,10 +124,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void openHomeFragment() {
+    private void openHomeFragment(boolean showSummaryPopup) {
+        HomeFragment fragment = new HomeFragment();
+        Bundle args = new Bundle();
+        args.putBoolean(Constants.ARG_SHOW_DAILY_SUMMARY_POPUP, showSummaryPopup);
+        fragment.setArguments(args);
+
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.fragment_container, new HomeFragment())
+                .replace(R.id.fragment_container, fragment)
                 .commit();
     }
 

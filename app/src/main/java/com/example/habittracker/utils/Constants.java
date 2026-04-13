@@ -24,4 +24,7 @@ public final class Constants {
     public static final String EXTRA_HABIT_ID = "extra_habit_id";
     public static final String EXTRA_HABIT_TITLE = "extra_habit_title";
     public static final String EXTRA_NOTIF_ID = "extra_notif_id";
+
+    public static final String EXTRA_OPEN_DAILY_SUMMARY_POPUP = "extra_open_daily_summary_popup";
+    public static final String ARG_SHOW_DAILY_SUMMARY_POPUP = "arg_show_daily_summary_popup";
 }

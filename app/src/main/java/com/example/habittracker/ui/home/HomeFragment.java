@@ -22,8 +22,10 @@ import com.example.habittracker.ui.timer.TimerHabitDialogFragment;
 import com.example.habittracker.utils.Constants;
 import com.example.habittracker.utils.DailyCompletionUtils;
 import com.example.habittracker.utils.SessionManager;
+import com.example.habittracker.utils.SettingsManager;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -37,6 +39,9 @@ public class HomeFragment extends Fragment {
     private TextView txtProgressRatio;
     private TextView tvStreakCount;
     private TextView txtGreeting;
+
+    private boolean shouldShowDailySummaryPopup = false;
+    private boolean popupAlreadyShown = false;
 
     public HomeFragment() {
     }
@@ -53,10 +58,12 @@ public class HomeFragment extends Fragment {
         tvStreakCount = view.findViewById(R.id.tvStreakCount);
         txtGreeting = view.findViewById(R.id.txtGreeting);
 
-        String userName = SessionManager.getUserName(requireContext());
-        if (userName != null && !userName.isEmpty() && !"Local User".equals(userName)) {
-            txtGreeting.setText("Hello,\n" + userName + "!");
+        if (getArguments() != null) {
+            shouldShowDailySummaryPopup =
+                    getArguments().getBoolean(Constants.ARG_SHOW_DAILY_SUMMARY_POPUP, false);
         }
+
+        updateGreeting();
 
         db = AppDatabase.getInstance(requireContext());
 
@@ -87,17 +94,24 @@ public class HomeFragment extends Fragment {
                 (requestKey, result) -> loadHabitsFromDatabase()
         );
 
-        getParentFragmentManager().setFragmentResultListener("refresh_habits", getViewLifecycleOwner(), (requestKey, result) -> {
-            // Khi nhận được tín hiệu, lập tức gọi lại hàm load dữ liệu
-            loadHabitsFromDatabase();
-        });
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        updateGreeting();
         loadHabitsFromDatabase();
+    }
+
+    private void updateGreeting() {
+        String displayName = SettingsManager.getDisplayName(requireContext());
+
+        if (displayName != null && !displayName.trim().isEmpty()) {
+            txtGreeting.setText("Hello,\n" + displayName.trim() + "!");
+        } else {
+            txtGreeting.setText("Hello,\nFriend!");
+        }
     }
 
     private void openTimerHabit(Habit habit) {
@@ -117,7 +131,7 @@ public class HomeFragment extends Fragment {
 
         int userId = SessionManager.getUserId(requireContext());
         if (userId == -1) {
-            Toast.makeText(requireContext(), "Không tìm thấy phiên đăng nhập", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Không tìm thấy người dùng", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -135,8 +149,6 @@ public class HomeFragment extends Fragment {
 
                 if (habit.isCounterHabit()) {
                     completedToday = currentValue >= habit.getSafeTargetValue();
-                } else if (habit.isTimerHabit()) {
-                    completedToday = todayLog != null && todayLog.isCompleted();
                 } else {
                     completedToday = todayLog != null && todayLog.isCompleted();
                 }
@@ -161,9 +173,45 @@ public class HomeFragment extends Fragment {
                     adapter.updateData(habits);
                     updateProgressText(finalCompletedCount, habits.size());
                     tvStreakCount.setText(String.valueOf(finalDayStreak));
+
+                    if (shouldShowDailySummaryPopup && !popupAlreadyShown) {
+                        popupAlreadyShown = true;
+                        shouldShowDailySummaryPopup = false;
+                        showDailySummaryPopup(habits, finalCompletedCount, finalDayStreak);
+                    }
                 });
             }
         }).start();
+    }
+
+    private void showDailySummaryPopup(List<Habit> habits, int completedCount, int dayStreak) {
+        if (!isAdded()) {
+            return;
+        }
+
+        ArrayList<String> completedHabitLines = new ArrayList<>();
+
+        for (Habit habit : habits) {
+            if (habit.isCompletedToday()) {
+                String emoji = habit.getIconEmoji() == null || habit.getIconEmoji().trim().isEmpty()
+                        ? "✅"
+                        : habit.getIconEmoji();
+
+                completedHabitLines.add(
+                        emoji + " " + habit.getTitle()
+                                + "  •  streak " + habit.getCurrentStreak() + " ngày"
+                );
+            }
+        }
+
+        DailySummaryDialogFragment dialog = DailySummaryDialogFragment.newInstance(
+                completedCount,
+                habits.size(),
+                dayStreak,
+                completedHabitLines
+        );
+
+        dialog.show(getParentFragmentManager(), "daily_summary_dialog");
     }
 
     private void handleHabitCheckedChanged(Habit habit, boolean isChecked, int position) {
@@ -282,6 +330,7 @@ public class HomeFragment extends Fragment {
             txtProgressRatio.setText("Hôm nay chưa có thói quen nào");
             return;
         }
+
         txtProgressRatio.setText(completedCount + " trên " + totalCount + " đã hoàn thành");
     }
 
