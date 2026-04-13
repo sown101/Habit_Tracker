@@ -22,7 +22,6 @@ public class WorkerScheduler {
 
     public static void scheduleAll(@NonNull Context context) {
         scheduleSummaryWorker(context);
-        scheduleDailyResetWorker(context);
     }
 
     public static void scheduleSummaryWorker(@NonNull Context context) {
@@ -50,25 +49,6 @@ public class WorkerScheduler {
 
     public static void cancelSummaryWorker(@NonNull Context context) {
         WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_SUMMARY_WORK);
-    }
-
-    public static void scheduleDailyResetWorker(@NonNull Context context) {
-        long initialDelay = calculateInitialDelay(0, 5);
-
-        PeriodicWorkRequest resetRequest =
-                new PeriodicWorkRequest.Builder(DailyResetWorker.class, 24, TimeUnit.HOURS)
-                        .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
-                        .build();
-
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                UNIQUE_RESET_WORK,
-                ExistingPeriodicWorkPolicy.UPDATE,
-                resetRequest
-        );
-    }
-
-    public static void cancelDailyResetWorker(@NonNull Context context) {
-        WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_RESET_WORK);
     }
 
     private static long calculateInitialDelay(int targetHour, int targetMinute) {
