@@ -1,32 +1,25 @@
 package com.example.habittracker.utils;
 
+import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-
-import com.example.habittracker.receiver.NotificationActionReceiver;
-import com.example.habittracker.ui.main.MainActivity;
-import android.Manifest;
-import android.content.pm.PackageManager;
 import androidx.core.content.ContextCompat;
 
-public class NotificationUtils {
+import com.example.habittracker.R;
+import com.example.habittracker.ui.main.MainActivity;
+
+public final class NotificationUtils {
 
     public static final String CHANNEL_ID_REMINDER = "habit_reminder_channel";
     public static final String CHANNEL_ID_SUMMARY = "habit_summary_channel";
-
-    public static final String ACTION_COMPLETE = "com.example.habittracker.ACTION_COMPLETE_HABIT";
-    public static final String ACTION_SNOOZE = "com.example.habittracker.ACTION_SNOOZE_HABIT";
-
-    public static final String EXTRA_HABIT_ID = "extra_habit_id";
-    public static final String EXTRA_HABIT_TITLE = "extra_habit_title";
-    public static final String EXTRA_NOTIF_ID = "extra_notif_id";
 
     private NotificationUtils() {
     }
@@ -38,23 +31,24 @@ public class NotificationUtils {
 
         NotificationManager manager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
         if (manager == null) {
             return;
         }
 
         NotificationChannel reminderChannel = new NotificationChannel(
                 CHANNEL_ID_REMINDER,
-                "Nhắc nhở thói quen",
+                "Habit reminders",
                 NotificationManager.IMPORTANCE_HIGH
         );
-        reminderChannel.setDescription("Thông báo nhắc bạn thực hiện thói quen");
+        reminderChannel.setDescription("Simple reminder notifications");
 
         NotificationChannel summaryChannel = new NotificationChannel(
                 CHANNEL_ID_SUMMARY,
-                "Tổng kết thói quen",
+                "Daily summary",
                 NotificationManager.IMPORTANCE_DEFAULT
         );
-        summaryChannel.setDescription("Thông báo tổng kết hằng ngày");
+        summaryChannel.setDescription("Daily habit summary");
 
         manager.createNotificationChannel(reminderChannel);
         manager.createNotificationChannel(summaryChannel);
@@ -65,61 +59,31 @@ public class NotificationUtils {
                                                 String habitTitle,
                                                 int notifId) {
 
-        Intent completeIntent = new Intent(context, NotificationActionReceiver.class);
-        completeIntent.setAction(ACTION_COMPLETE);
-        completeIntent.putExtra(EXTRA_HABIT_ID, habitId);
-        completeIntent.putExtra(EXTRA_HABIT_TITLE, habitTitle);
-        completeIntent.putExtra(EXTRA_NOTIF_ID, notifId);
-
-        PendingIntent completePendingIntent = PendingIntent.getBroadcast(
-                context,
-                notifId + 1000,
-                completeIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        Intent snoozeIntent = new Intent(context, NotificationActionReceiver.class);
-        snoozeIntent.setAction(ACTION_SNOOZE);
-        snoozeIntent.putExtra(EXTRA_HABIT_ID, habitId);
-        snoozeIntent.putExtra(EXTRA_HABIT_TITLE, habitTitle);
-        snoozeIntent.putExtra(EXTRA_NOTIF_ID, notifId);
-
-        PendingIntent snoozePendingIntent = PendingIntent.getBroadcast(
-                context,
-                notifId + 2000,
-                snoozeIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
         Intent openIntent = new Intent(context, MainActivity.class);
-        openIntent.putExtra(EXTRA_HABIT_ID, habitId);
+        openIntent.putExtra(Constants.EXTRA_HABIT_ID, habitId);
         openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         PendingIntent openPendingIntent = PendingIntent.getActivity(
                 context,
-                notifId + 3000,
+                notifId + 1000,
                 openIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(context, CHANNEL_ID_REMINDER)
-                        .setSmallIcon(android.R.drawable.ic_dialog_info)
-                        .setContentTitle("Nhắc nhở thói quen")
-                        .setContentText("Đã đến giờ: " + habitTitle)
+                        .setSmallIcon(R.drawable.ic_launcher_foreground)
+                        .setContentTitle(habitTitle)
+                        .setContentText("It's time to complete your habit.")
                         .setStyle(new NotificationCompat.BigTextStyle()
-                                .bigText("Đã đến giờ thực hiện thói quen: " + habitTitle))
+                                .bigText("It's time to complete your habit."))
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
                         .setAutoCancel(true)
-                        .setContentIntent(openPendingIntent)
-                        .addAction(0, "Hoàn thành", completePendingIntent)
-                        .addAction(0, "Nhắc lại 10 phút", snoozePendingIntent);
+                        .setContentIntent(openPendingIntent);
 
-        // Kiểm tra xem thiết bị có đang chạy Android 13 (Tiramisu) trở lên hay không
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                // Quyền chưa được cấp.
-                // Return sớm để ứng dụng không bị crash hoặc báo lỗi lint.
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
         }

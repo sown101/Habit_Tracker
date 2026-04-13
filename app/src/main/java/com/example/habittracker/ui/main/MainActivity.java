@@ -1,10 +1,13 @@
 package com.example.habittracker.ui.main;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -13,19 +16,23 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.habittracker.R;
+import com.example.habittracker.ui.calendar.CalendarFragment;
 import com.example.habittracker.ui.home.AddHabit;
 import com.example.habittracker.ui.home.HomeFragment;
 import com.example.habittracker.ui.settings.SettingsFragment;
 import com.example.habittracker.ui.stats.StatsFragment;
+import com.example.habittracker.utils.Constants;
+import com.example.habittracker.worker.WorkerScheduler;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 101;
 
-    private ImageView navHome;
-    private ImageView navStats;
-    private ImageView navSettings;
+    private LinearLayout navHome;
+    private LinearLayout navStats;
+    private LinearLayout navSettings;
+    private LinearLayout navCalendar;
     private FloatingActionButton navAdd;
 
     @Override
@@ -35,21 +42,41 @@ public class MainActivity extends AppCompatActivity {
 
         askNotificationPermission();
         com.example.habittracker.utils.NotificationUtils.createNotificationChannels(this);
+        WorkerScheduler.scheduleAll(this);
 
         navHome = findViewById(R.id.nav_home);
         navStats = findViewById(R.id.nav_stats);
         navSettings = findViewById(R.id.nav_settings);
+        navCalendar = findViewById(R.id.nav_calendar);
         navAdd = findViewById(R.id.nav_add);
 
         if (savedInstanceState == null) {
-            openHomeFragment();
+            boolean showSummaryPopup = getIntent().getBooleanExtra(
+                    Constants.EXTRA_OPEN_DAILY_SUMMARY_POPUP, false
+            );
+            openHomeFragment(showSummaryPopup);
+            setSelectedNav(navHome);
         }
 
-        navHome.setOnClickListener(v -> openHomeFragment());
+        navHome.setOnClickListener(v -> {
+            openHomeFragment(false);
+            setSelectedNav(navHome);
+        });
 
-        navStats.setOnClickListener(v -> openStatsFragment());
+        navStats.setOnClickListener(v -> {
+            openStatsFragment();
+            setSelectedNav(navStats);
+        });
 
-        navSettings.setOnClickListener(v -> openSettingsFragment());
+        navCalendar.setOnClickListener(v -> {
+            openCalendarFragment();
+            setSelectedNav(navCalendar);
+        });
+
+        navSettings.setOnClickListener(v -> {
+            openSettingsFragment();
+            setSelectedNav(navSettings);
+        });
 
         navAdd.setOnClickListener(v -> {
             AddHabit bottomSheet = new AddHabit();
@@ -57,20 +84,75 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void openHomeFragment() {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new HomeFragment())
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+
+        boolean showSummaryPopup = intent.getBooleanExtra(
+                Constants.EXTRA_OPEN_DAILY_SUMMARY_POPUP, false
+        );
+
+        if (showSummaryPopup) {
+            openHomeFragment(true);
+            setSelectedNav(navHome);
+        }
+    }
+
+    private void setSelectedNav(LinearLayout selectedNav) {
+        resetNav(navHome);
+        resetNav(navCalendar);
+        resetNav(navStats);
+        resetNav(navSettings);
+
+        setNavColors(selectedNav, "#23C552");
+    }
+
+    private void resetNav(LinearLayout nav) {
+        setNavColors(nav, "#BDBDBD");
+    }
+
+    private void setNavColors(LinearLayout nav, String colorHex) {
+        if (nav == null) return;
+
+        for (int i = 0; i < nav.getChildCount(); i++) {
+            if (nav.getChildAt(i) instanceof ImageView) {
+                ((ImageView) nav.getChildAt(i)).setColorFilter(android.graphics.Color.parseColor(colorHex));
+            } else if (nav.getChildAt(i) instanceof TextView) {
+                ((TextView) nav.getChildAt(i)).setTextColor(android.graphics.Color.parseColor(colorHex));
+            }
+        }
+    }
+
+    private void openHomeFragment(boolean showSummaryPopup) {
+        HomeFragment fragment = new HomeFragment();
+        Bundle args = new Bundle();
+        args.putBoolean(Constants.ARG_SHOW_DAILY_SUMMARY_POPUP, showSummaryPopup);
+        fragment.setArguments(args);
+
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, fragment)
                 .commit();
     }
 
     private void openStatsFragment() {
-        getSupportFragmentManager().beginTransaction()
+        getSupportFragmentManager()
+                .beginTransaction()
                 .replace(R.id.fragment_container, new StatsFragment())
                 .commit();
     }
 
+    private void openCalendarFragment() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, new CalendarFragment())
+                .commit();
+    }
+
     private void openSettingsFragment() {
-        getSupportFragmentManager().beginTransaction()
+        getSupportFragmentManager()
+                .beginTransaction()
                 .replace(R.id.fragment_container, new SettingsFragment())
                 .commit();
     }

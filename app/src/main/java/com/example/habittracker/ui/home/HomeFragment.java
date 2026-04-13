@@ -1,10 +1,10 @@
 package com.example.habittracker.ui.home;
 
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,8 +18,11 @@ import com.example.habittracker.data.db.AppDatabase;
 import com.example.habittracker.data.model.Habit;
 import com.example.habittracker.data.model.HabitLog;
 import com.example.habittracker.ui.adapter.HabitAdapter;
+import com.example.habittracker.ui.timer.TimerHabitDialogFragment;
 import com.example.habittracker.utils.Constants;
+import com.example.habittracker.utils.DailyCompletionUtils;
 import com.example.habittracker.utils.SessionManager;
+import com.example.habittracker.utils.SettingsManager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -33,6 +36,13 @@ public class HomeFragment extends Fragment {
     private HabitAdapter adapter;
     private AppDatabase db;
 
+    private TextView txtProgressRatio;
+    private TextView tvStreakCount;
+    private TextView txtGreeting;
+
+    private boolean shouldShowDailySummaryPopup = false;
+    private boolean popupAlreadyShown = false;
+
     public HomeFragment() {
     }
 
@@ -44,11 +54,38 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         rvHabits = view.findViewById(R.id.rvHabits);
-        rvHabits.setLayoutManager(new LinearLayoutManager(requireContext()));
+        txtProgressRatio = view.findViewById(R.id.txtProgressRatio);
+        tvStreakCount = view.findViewById(R.id.tvStreakCount);
+        txtGreeting = view.findViewById(R.id.txtGreeting);
+
+        if (getArguments() != null) {
+            shouldShowDailySummaryPopup =
+                    getArguments().getBoolean(Constants.ARG_SHOW_DAILY_SUMMARY_POPUP, false);
+        }
+
+        updateGreeting();
 
         db = AppDatabase.getInstance(requireContext());
 
-        adapter = new HabitAdapter(new ArrayList<>(), this::handleHabitCheckedChanged);
+        rvHabits.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        adapter = new HabitAdapter(
+                null,
+                this::handleHabitCheckedChanged,
+                new HabitAdapter.OnCounterActionListener() {
+                    @Override
+                    public void onCounterPlus(Habit habit, int position) {
+                        updateCounterHabit(habit, position, 1, false);
+                    }
+
+                    @Override
+                    public void onCounterMinus(Habit habit, int position) {
+                        updateCounterHabit(habit, position, 0, true);
+                    }
+                },
+                (habit, position) -> openTimerHabit(habit)
+        );
+
         rvHabits.setAdapter(adapter);
 
         getParentFragmentManager().setFragmentResultListener(
@@ -57,18 +94,44 @@ public class HomeFragment extends Fragment {
                 (requestKey, result) -> loadHabitsFromDatabase()
         );
 
-        loadHabitsFromDatabase();
-
         return view;
     }
 
-    private void loadHabitsFromDatabase() {
-        int userId = SessionManager.getUserId(requireContext());
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateGreeting();
+        loadHabitsFromDatabase();
+    }
 
+    private void updateGreeting() {
+        String displayName = SettingsManager.getDisplayName(requireContext());
+
+        if (displayName != null && !displayName.trim().isEmpty()) {
+            txtGreeting.setText("Hello,\n" + displayName.trim() + "!");
+        } else {
+            txtGreeting.setText("Hello,\nFriend!");
+        }
+    }
+
+    private void openTimerHabit(Habit habit) {
+        if (habit == null || !habit.isTimerHabit()) {
+            return;
+        }
+
+        TimerHabitDialogFragment dialog =
+                TimerHabitDialogFragment.newInstance(habit.getId());
+        dialog.show(getParentFragmentManager(), "timer_habit_dialog");
+    }
+
+    private void loadHabitsFromDatabase() {
+        if (!isAdded()) {
+            return;
+        }
+
+        int userId = SessionManager.getUserId(requireContext());
         if (userId == -1) {
-            if (isAdded()) {
-                Toast.makeText(requireContext(), "Không tìm thấy phiên đăng nhập", Toast.LENGTH_SHORT).show();
-            }
+            Toast.makeText(requireContext(), "Không tìm thấy người dùng", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -76,16 +139,79 @@ public class HomeFragment extends Fragment {
             List<Habit> habits = db.habitDao().getAllActiveHabitsByUser(userId);
             String today = getTodayDate();
 
+            int completedCount = 0;
+
             for (Habit habit : habits) {
                 HabitLog todayLog = db.habitLogDao().getLogByHabitAndDate(habit.getId(), today);
-                boolean completedToday = todayLog != null && todayLog.isCompleted();
+
+                int currentValue = todayLog != null ? todayLog.getCurrentValue() : 0;
+                boolean completedToday;
+
+                if (habit.isCounterHabit()) {
+                    completedToday = currentValue >= habit.getSafeTargetValue();
+                } else {
+                    completedToday = todayLog != null && todayLog.isCompleted();
+                }
+
+                habit.setCurrentValueToday(currentValue);
                 habit.setCompletedToday(completedToday);
+
+                int streak = DailyCompletionUtils.calculateHabitCurrentStreak(db, habit.getId());
+                habit.setCurrentStreak(streak);
+
+                if (completedToday) {
+                    completedCount++;
+                }
             }
 
+            int dayStreak = DailyCompletionUtils.calculateCurrentDayStreak(db, userId);
+            int finalCompletedCount = completedCount;
+            int finalDayStreak = dayStreak;
+
             if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> adapter.updateData(habits));
+                getActivity().runOnUiThread(() -> {
+                    adapter.updateData(habits);
+                    updateProgressText(finalCompletedCount, habits.size());
+                    tvStreakCount.setText(String.valueOf(finalDayStreak));
+
+                    if (shouldShowDailySummaryPopup && !popupAlreadyShown) {
+                        popupAlreadyShown = true;
+                        shouldShowDailySummaryPopup = false;
+                        showDailySummaryPopup(habits, finalCompletedCount, finalDayStreak);
+                    }
+                });
             }
         }).start();
+    }
+
+    private void showDailySummaryPopup(List<Habit> habits, int completedCount, int dayStreak) {
+        if (!isAdded()) {
+            return;
+        }
+
+        ArrayList<String> completedHabitLines = new ArrayList<>();
+
+        for (Habit habit : habits) {
+            if (habit.isCompletedToday()) {
+                String emoji = habit.getIconEmoji() == null || habit.getIconEmoji().trim().isEmpty()
+                        ? "✅"
+                        : habit.getIconEmoji();
+
+                completedHabitLines.add(
+                        emoji + " " + habit.getTitle()
+                                + "  •  streak " + habit.getCurrentStreak() + " ngày"
+                );
+            }
+        }
+
+        DailySummaryDialogFragment dialog = DailySummaryDialogFragment.newInstance(
+                completedCount,
+                habits.size(),
+                dayStreak,
+                completedHabitLines
+        );
+
+        dialog.show(getParentFragmentManager(), "daily_summary_dialog");
     }
 
     private void handleHabitCheckedChanged(Habit habit, boolean isChecked, int position) {
@@ -96,14 +222,18 @@ public class HomeFragment extends Fragment {
         new Thread(() -> {
             String today = getTodayDate();
             String now = getCurrentDateTime();
+
             HabitLog existingLog = db.habitLogDao().getLogByHabitAndDate(habit.getId(), today);
+
+            int targetValue = habit.getSafeTargetValue();
+            int newCurrentValue = isChecked ? targetValue : 0;
 
             if (existingLog == null) {
                 HabitLog newLog = new HabitLog(
                         habit.getId(),
                         today,
-                        isChecked ? habit.getTargetValue() : 0,
-                        habit.getTargetValue(),
+                        newCurrentValue,
+                        targetValue,
                         isChecked,
                         isChecked ? now : null,
                         null,
@@ -111,31 +241,97 @@ public class HomeFragment extends Fragment {
                 );
                 db.habitLogDao().insert(newLog);
             } else {
-                existingLog.setCurrentValue(isChecked ? habit.getTargetValue() : 0);
-                existingLog.setTargetValue(habit.getTargetValue());
+                existingLog.setCurrentValue(newCurrentValue);
+                existingLog.setTargetValue(targetValue);
                 existingLog.setCompleted(isChecked);
                 existingLog.setCompletedAt(isChecked ? now : null);
-
-                if (TextUtils.isEmpty(existingLog.getCompletionMethod()) || isChecked) {
-                    existingLog.setCompletionMethod(Constants.COMPLETION_METHOD_MANUAL);
-                }
-
+                existingLog.setCompletionMethod(Constants.COMPLETION_METHOD_MANUAL);
                 db.habitLogDao().update(existingLog);
             }
 
-            habit.setCompletedToday(isChecked);
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    loadHabitsFromDatabase();
+                    Toast.makeText(
+                            requireContext(),
+                            isChecked ? "Đã đánh dấu hoàn thành" : "Đã bỏ đánh dấu",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                });
+            }
+        }).start();
+    }
+
+    private void updateCounterHabit(Habit habit, int position, int delta, boolean resetToZero) {
+        if (habit == null || position == RecyclerView.NO_POSITION) {
+            return;
+        }
+
+        new Thread(() -> {
+            String today = getTodayDate();
+            String now = getCurrentDateTime();
+
+            HabitLog existingLog = db.habitLogDao().getLogByHabitAndDate(habit.getId(), today);
+
+            int targetValue = habit.getSafeTargetValue();
+            int currentValue = existingLog != null ? existingLog.getCurrentValue() : 0;
+
+            int newValue;
+            if (resetToZero) {
+                newValue = 0;
+            } else {
+                newValue = Math.min(targetValue, currentValue + delta);
+            }
+
+            boolean isCompleted = newValue >= targetValue;
+
+            if (existingLog == null) {
+                HabitLog newLog = new HabitLog(
+                        habit.getId(),
+                        today,
+                        newValue,
+                        targetValue,
+                        isCompleted,
+                        isCompleted ? now : null,
+                        null,
+                        Constants.COMPLETION_METHOD_MANUAL
+                );
+                db.habitLogDao().insert(newLog);
+            } else {
+                existingLog.setCurrentValue(newValue);
+                existingLog.setTargetValue(targetValue);
+                existingLog.setCompleted(isCompleted);
+                existingLog.setCompletedAt(isCompleted ? now : null);
+                existingLog.setCompletionMethod(Constants.COMPLETION_METHOD_MANUAL);
+                db.habitLogDao().update(existingLog);
+            }
 
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
-                    adapter.updateHabitCheckedState(position, isChecked);
+                    loadHabitsFromDatabase();
 
-                    String message = isChecked
-                            ? "Đã đánh dấu hoàn thành"
-                            : "Đã bỏ đánh dấu hoàn thành";
+                    String message;
+                    if (resetToZero) {
+                        message = "Đã đặt lại về 0";
+                    } else if (isCompleted) {
+                        message = "Đã đạt mục tiêu";
+                    } else {
+                        message = "+1 " + habit.getDisplayUnit();
+                    }
+
                     Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
                 });
             }
         }).start();
+    }
+
+    private void updateProgressText(int completedCount, int totalCount) {
+        if (totalCount <= 0) {
+            txtProgressRatio.setText("Hôm nay chưa có thói quen nào");
+            return;
+        }
+
+        txtProgressRatio.setText(completedCount + " trên " + totalCount + " đã hoàn thành");
     }
 
     private String getTodayDate() {
@@ -144,11 +340,5 @@ public class HomeFragment extends Fragment {
 
     private String getCurrentDateTime() {
         return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        loadHabitsFromDatabase();
     }
 }

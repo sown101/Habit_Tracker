@@ -1,69 +1,177 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="20dp"
-    android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@android:color/white"
-    app:cardCornerRadius="25dp"
-    app:cardElevation="0dp"
-    app:strokeColor="@color/gray_border"
-    app:strokeWidth="1dp">
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginBottom="14dp"
+    app:cardBackgroundColor="#161616"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:minHeight="112dp"
+        android:paddingHorizontal="18dp"
+        android:paddingVertical="16dp">
 
-        <ImageView
-            android:id="@+id/imgHabitIcon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="#F5F5F5"
-            android:padding="8dp"
-            app:layout_constraintCircleRadius="20dp"
-            android:src="@drawable/ic_launcher_foreground"
+        <FrameLayout
+            android:id="@+id/frameIcon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/text_secondary" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <View
+                android:id="@+id/viewIconBg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/darker_gray" />
+
+            <TextView
+                android:id="@+id/txtIconEmoji"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="⭐"
+                android:textSize="27sp" />
+        </FrameLayout>
 
         <TextView
             android:id="@+id/txtHabitTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:fontFamily="sans-serif-medium"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp"
-            app:layout_constraintEnd_toStartOf="@+id/cbHabitComplete"
-            app:layout_constraintStart_toEndOf="@+id/imgHabitIcon"
-            app:layout_constraintTop_toTopOf="@+id/imgHabitIcon"
-            tools:text="Học tiếng anh" />
+            android:layout_marginStart="14dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Habit Name"
+            android:textColor="#FFFFFF"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/layoutActionContainer"
+            app:layout_constraintStart_toEndOf="@id/frameIcon"
+            app:layout_constraintTop_toTopOf="@id/frameIcon" />
 
         <TextView
-            android:id="@+id/txtHabitTime"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="@color/text_secondary"
-            android:textSize="13sp"
-            app:layout_constraintEnd_toEndOf="@+id/txtHabitTitle"
-            app:layout_constraintStart_toStartOf="@+id/txtHabitTitle"
-            app:layout_constraintTop_toBottomOf="@+id/txtHabitTitle"
-            tools:text="1 tiếng • Hoàn thành" />
-
-        <CheckBox
-            android:id="@+id/cbHabitComplete"
+            android:id="@+id/txtHabitStreak"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:buttonTint="@color/text_secondary"
+            android:layout_marginStart="14dp"
+            android:layout_marginTop="6dp"
+            android:text="🔥 0 Days"
+            android:textColor="#FF9E2C"
+            android:textSize="13sp"
+            app:layout_constraintStart_toEndOf="@id/frameIcon"
+            app:layout_constraintTop_toBottomOf="@id/txtHabitTitle" />
+
+        <TextView
+            android:id="@+id/txtHabitSub"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Today"
+            android:textColor="#C7C7C7"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toStartOf="@id/layoutActionContainer"
+            app:layout_constraintStart_toEndOf="@id/frameIcon"
+            app:layout_constraintTop_toBottomOf="@id/txtHabitStreak" />
+
+        <FrameLayout
+            android:id="@+id/layoutActionContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <!-- TASK -->
+            <LinearLayout
+                android:id="@+id/layoutCompleteAction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/btnCompleteTask"
+                    android:layout_width="58dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_action_circle"
+                    android:gravity="center"
+                    android:text="✓"
+                    android:textColor="#BFA7B0"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- COUNTER -->
+            <LinearLayout
+                android:id="@+id/layoutCounterAction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/btnPlus"
+                    android:layout_width="58dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_action_circle"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textColor="#BFA7B0"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtCounterValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="0 / 5 times"
+                    android:textColor="#BFB7CF"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- TIMER -->
+            <LinearLayout
+                android:id="@+id/layoutTimerAction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/btnStartTimer"
+                    android:layout_width="58dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_action_circle"
+                    android:gravity="center"
+                    android:text="▶"
+                    android:textColor="#BFA7B0"
+                    android:textSize="22sp" />
+
+                <TextView
+                    android:id="@+id/txtTimerValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="00:00 / 15:00"
+                    android:textColor="#BFB7CF"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+        </FrameLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-</com.google.android.material.card.MaterialCardView>
+
+</androidx.cardview.widget.CardView>

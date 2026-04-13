@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_daily_summary_item"
+    android:orientation="horizontal"
+    android:padding="14dp">
+
+    <TextView
+        android:id="@+id/tvHabitLine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="✅ Đọc sách - streak: 6 ngày"
+        android:textColor="#222222"
+        android:textSize="14sp" />
+
+</LinearLayout>
